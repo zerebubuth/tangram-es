@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <stdlib.h>
 
 #include "tileData.h"
 #include "platform.h"
@@ -21,7 +22,7 @@ struct PolyLineOptions {
     CapTypes cap;
     JoinTypes join;
     float halfWidth;
-    
+
     PolyLineOptions() : cap(CapTypes::BUTT), join(JoinTypes::MITER), halfWidth(0.02f) {};
     PolyLineOptions(CapTypes _c, JoinTypes _j, float _hw) : cap(_c), join(_j), halfWidth(_hw) {};
 };
@@ -41,12 +42,12 @@ struct PolyLineOutput {
 };
 
 class Builders {
-    
+
 public:
-    
+
     static std::vector<glm::vec2> NO_TEXCOORDS;
     static std::vector<glm::vec2> NO_SCALING_VECS;
-    
+
     /* Build a tesselated polygon
      * @_polygon input coordinates describing the polygon
      * @_out output vectors, see <PolygonOutput>
@@ -66,14 +67,14 @@ public:
      * @_out output vectors, see <PolyLineOutput>
      */
     static void buildPolyLine(const Line& _line, const PolyLineOptions& _options, PolyLineOutput& _out);
-    
+
     /* Build a tesselated outline that follows the given line while skipping tile boundaries */
     static void buildOutline(const Line& _line, const PolyLineOptions& _options, PolyLineOutput& _out);
-    
+
     /* Build a tesselated square centered on a point coordinate
-     * 
+     *
      * NOT IMPLEMENTED
      */
     static void buildQuadAtPoint(const Point& _pointIn, const glm::vec3& _normal, float width, float height, PolygonOutput& _out);
-    
+
 };

@@ -34,3 +34,8 @@
 #include <EGL/eglext.h>
 #endif
 
+#ifdef PLATFORM_JS
+#define GLFW_INCLUDE_ES2
+#include <GLFW/glfw3.h>
+#endif
+

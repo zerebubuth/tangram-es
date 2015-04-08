@@ -5,7 +5,7 @@ tangram-es
 
 OpenGL ES version of Tangram for mobile devices - EARLY work-in-progress!
 
-tangram-es is a library for rendering 2D and 3D maps using OpenGL ES 2 with custom styling and interactions. We maintain sample client applications that use the library to render on Android, iOS, Mac OS X, Ubuntu, and Rasberry Pi. 
+tangram-es is a library for rendering 2D and 3D maps using OpenGL ES 2 with custom styling and interactions. We maintain sample client applications that use the library to render on Android, iOS, Mac OS X, Ubuntu, and Rasberry Pi.
 
 build
 =====
@@ -21,12 +21,12 @@ Make sure to update git submodules before you build:
 git submodule init && git submodule update
 ```
 
-Currently we are targeting five platforms: OS X, Ubuntu Linux, iOS, Android, and Raspberry Pi. 
+Currently we are targeting five platforms: OS X, Ubuntu Linux, iOS, Android, and Raspberry Pi.
 
 ## platforms ##
 
 ### OS X ###
-To build for OS X, you will need to install [GLFW](http://www.glfw.org/) and [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/): 
+To build for OS X, you will need to install [GLFW](http://www.glfw.org/) and [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/):
 
 ```bash
 brew tap homebrew/versions
@@ -59,7 +59,7 @@ For running on the iOS simulator, generate and compile an XCode project:
 make ios
 ```
 
-Then just open the Xcode project and run/debug from there: 
+Then just open the Xcode project and run/debug from there:
 
 ```bash
 open build/ios/tangram.xcodeproject
@@ -68,7 +68,7 @@ open build/ios/tangram.xcodeproject
 Note that any Xcode configuration change you make to the project won't be preserved when Cmake runs again. Build configuration is defined only in the CMakeLists file(s).
 
 ### iOS Devices ###
-For running on iOS devices you will need an iOS developer account, a valid code signing certificate, and a valid provisioning profile. Help on these topics can be found at [Apple's developer website](http://developer.apple.com). 
+For running on iOS devices you will need an iOS developer account, a valid code signing certificate, and a valid provisioning profile. Help on these topics can be found at [Apple's developer website](http://developer.apple.com).
 
 First generate an XCode project without compiling:
 
@@ -85,7 +85,7 @@ open build/ios/tangram.xcodeproj
 If you run into problems deploying to an iOS device, see [this note](https://github.com/tangrams/tangram-es/wiki/iOS-Notes).
 
 ### Android ###
-To build for Android you'll need to have installed both the [Android SDK](http://developer.android.com/sdk/installing/index.html?pkg=tools) and the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html). Set an `ANDROID_HOME` evironment variable with the root directory of your SDK and an `ANDROID_NDK` environment variable with the root directory of your NDK. 
+To build for Android you'll need to have installed both the [Android SDK](http://developer.android.com/sdk/installing/index.html?pkg=tools) and the [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html). Set an `ANDROID_HOME` evironment variable with the root directory of your SDK and an `ANDROID_NDK` environment variable with the root directory of your NDK.
 
 Build an APK of the demo application and optionally specify an architecture (default is armeabi-v7a):
 
@@ -133,3 +133,11 @@ cd build/rpi/bin
 ```
 
 You can also move the map with `w`, `a`, `s`, and `z`, zoom in and out with `-` and `=`, and quit with `q`.
+
+### Browser ####
+
+Download and install emscripten : [instructions](http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html)
+
+```
+make js
+```

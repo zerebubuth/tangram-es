@@ -1,4 +1,4 @@
-all: android osx osx-xcode ios
+all: android osx osx-xcode ios js
 
 .PHONY: clean
 .PHONY: clean-android
@@ -7,18 +7,21 @@ all: android osx osx-xcode ios
 .PHONY: clean-ios
 .PHONY: clean-rpi
 .PHONY: clean-linux
+.PHONY: clean-js
 .PHONY: android
 .PHONY: osx
 .PHONY: osx-xcode
 .PHONY: ios
 .PHONY: rpi
 .PHONY: linux
+.PHONY: js
 .PHONY: check-ndk
 .PHONY: cmake-osx
 .PHONY: cmake-osx-xcode
 .PHONY: cmake-android
 .PHONY: cmake-ios
 .PHONY: cmake-rpi
+.PHONY: cmake-js
 .PHONY: cmake-linux
 .PHONY: install-android
 
@@ -30,6 +33,7 @@ RPI_BUILD_DIR = build/rpi
 LINUX_BUILD_DIR = build/linux
 TESTS_BUILD_DIR = build/tests
 UNIT_TESTS_BUILD_DIR = ${TESTS_BUILD_DIR}/unit
+JS_BUILD_DIR = build/js
 
 TOOLCHAIN_DIR = toolchains
 OSX_TARGET = tangram
@@ -74,12 +78,16 @@ DARWIN_CMAKE_PARAMS = \
 	-DPLATFORM_TARGET=darwin
 
 RPI_CMAKE_PARAMS = \
-	-DPLATFORM_TARGET=raspberrypi 
+	-DPLATFORM_TARGET=raspberrypi
 
 LINUX_CMAKE_PARAMS = \
 	-DPLATFORM_TARGET=linux
 
-clean: clean-android clean-osx clean-ios clean-rpi clean-tests clean-osx-xcode clean-linux
+JS_CMAKE_PARAMS = \
+	-DPLATFORM_TARGET=emscripten \
+	-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_DIR}/emscripten.toolchain.cmake \
+
+clean: clean-android clean-osx clean-ios clean-rpi clean-tests clean-osx-xcode clean-linux clean-js
 
 clean-android:
 	@cd android/ && \
@@ -89,7 +97,7 @@ clean-android:
 
 clean-osx:
 	rm -rf ${OSX_BUILD_DIR}
-	
+
 clean-ios:
 	rm -rf ${IOS_BUILD_DIR}
 
@@ -105,6 +113,9 @@ clean-osx-xcode:
 clean-tests:
 	rm -rf ${TESTS_BUILD_DIR}
 
+clean-js:
+	rm -rf ${JS_BUILD_DIR}
+
 android: android/libs/${ANDROID_ARCH}/libtangram.so android/build.gradle
 	@cd android/ && \
 	./gradlew assembleDebug
@@ -119,7 +130,7 @@ install-android: ${ANDROID_BUILD_DIR}/Makefile
 ${ANDROID_BUILD_DIR}/Makefile: check-ndk cmake-android
 
 cmake-android:
-	@mkdir -p ${ANDROID_BUILD_DIR} 
+	@mkdir -p ${ANDROID_BUILD_DIR}
 	@cd ${ANDROID_BUILD_DIR} && \
 	cmake ../.. ${ANDROID_CMAKE_PARAMS}
 
@@ -134,13 +145,13 @@ osx-xcode: cmake-osx-xcode ${OSX_XCODE_BUILD_DIR}
 
 cmake-osx-xcode:
 ifeq ($(wildcard ${OSX_XCODE_BUILD_DIR}/${OSX_XCODE_PROJ}/.*),)
-	@mkdir -p ${OSX_XCODE_BUILD_DIR} 
+	@mkdir -p ${OSX_XCODE_BUILD_DIR}
 	@cd ${OSX_XCODE_BUILD_DIR} && \
 	cmake ../.. ${DARWIN_XCODE_CMAKE_PARAMS}
 endif
 
-cmake-osx: 
-	@mkdir -p ${OSX_BUILD_DIR} 
+cmake-osx:
+	@mkdir -p ${OSX_BUILD_DIR}
 	@cd ${OSX_BUILD_DIR} && \
 	cmake ../.. ${DARWIN_CMAKE_PARAMS}
 
@@ -156,10 +167,19 @@ ifeq ($(wildcard ${IOS_BUILD_DIR}/${IOS_XCODE_PROJ}/.*),)
 	cmake ../.. ${IOS_CMAKE_PARAMS}
 endif
 
+js: cmake-js ${JS_BUILD_DIR}
+	@cd ${JS_BUILD_DIR} && \
+	${MAKE}
+
+cmake-js:
+	@mkdir -p ${JS_BUILD_DIR}
+	@cd ${JS_BUILD_DIR} && \
+	cmake ../.. ${JS_CMAKE_PARAMS}
+
 rpi: cmake-rpi
 	@cd ${RPI_BUILD_DIR} && \
 	${MAKE}
-	
+
 cmake-rpi:
 	@mkdir -p ${RPI_BUILD_DIR}
 	@cd ${RPI_BUILD_DIR} && \
@@ -169,15 +189,15 @@ linux: cmake-linux
 	cd ${LINUX_BUILD_DIR} && \
 	${MAKE}
 
-cmake-linux: 
+cmake-linux:
 	mkdir -p ${LINUX_BUILD_DIR}
 	cd ${LINUX_BUILD_DIR} &&\
 	cmake ../.. ${LINUX_CMAKE_PARAMS}
-	
+
 tests: unit-tests
 
 unit-tests:
-	@mkdir -p ${UNIT_TESTS_BUILD_DIR} 
+	@mkdir -p ${UNIT_TESTS_BUILD_DIR}
 	@cd ${UNIT_TESTS_BUILD_DIR} && \
 	cmake ../../.. ${UNIT_TESTS_CMAKE_PARAMS} && \
 	${MAKE}

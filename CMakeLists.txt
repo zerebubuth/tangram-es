@@ -8,13 +8,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-if(UNIT_TESTS) 
+if(UNIT_TESTS)
     include(${PROJECT_SOURCE_DIR}/toolchains/unitTests.cmake)
     return()
 endif()
 
 # platform lookup
-set(SUPPORTED_TARGETS darwin ios android raspberrypi linux)
+set(SUPPORTED_TARGETS darwin ios android raspberrypi linux emscripten)
 
 if(NOT PLATFORM_TARGET)
     string(TOLOWER "${CMAKE_SYSTEM_NAME}" varplatform)
@@ -39,7 +39,7 @@ if(target_in_list EQUAL -1)
     return()
 endif()
 
-# setting up cache variable platform 
+# setting up cache variable platform
 set(PLATFORM ${varplatform} CACHE INTERNAL "platform" FORCE)
 
 # cmake inclusions and definitions
