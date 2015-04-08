@@ -25,51 +25,41 @@ void TileWorker::load(const TileID &_tile,
     m_free = false;
     m_finished = false;
     m_aborted = false;
+    m_tile = std::shared_ptr<MapTile>(new MapTile(_tile, _view.getMapProjection()));
 
-    m_future = std::async(std::launch::deferred, [&](const TileID& _id) {
-
-        auto tile = std::shared_ptr<MapTile>(new MapTile(_id, _view.getMapProjection()));
-
-        // Fetch tile data from data sources
-        logMsg("Loading Tile [%d, %d, %d]\n", _id.z, _id.x, _id.y);
-        for (const auto& dataSource : _dataSources) {
-            if (m_aborted) {
-                m_finished = true;
-                return std::move(tile); // Early return
-            }
-            if (! dataSource->loadTileData(*tile)) {
-                logMsg("ERROR: Loading failed for tile [%d, %d, %d]\n", _id.z, _id.x, _id.y);
-                continue;
-            }
-
-            auto tileData = dataSource->getTileData(_id);
-
-            // Process data for all styles
-            for (const auto& style : _styles) {
-                if (m_aborted) {
-                    m_finished = true;
-                    return std::move(tile); // Early return
-                }
-                if (tileData) {
-                    style->addData(*tileData, *tile, _view.getMapProjection());
-                }
-                tile->update(0, *style, _view);
-            }
+    // Fetch tile data from data sources
+    logMsg("Loading Tile [%d, %d, %d]\n", _tile.z, _tile.x, _tile.y);
+    for (const auto& dataSource : _dataSources) {
+        if (m_aborted) {
+            m_finished = true;
+        }
+        if (! dataSource->loadTileData(*m_tile)) {
+            logMsg("ERROR: Loading failed for tile [%d, %d, %d]\n", _tile.z, _tile.x, _tile.y);
+            continue;
         }
 
-        m_finished = true;
+        auto tileData = dataSource->getTileData(_tile);
 
-        // Return finished tile
-        return std::move(tile);
+        // Process data for all styles
+        for (const auto& style : _styles) {
+            if (m_aborted) {
+                m_finished = true;
+            }
+            if (tileData) {
+                style->addData(*tileData, *m_tile, _view.getMapProjection());
+            }
+            m_tile->update(0, *style, _view);
+        }
+    }
 
-    }, *m_tileID);
+    m_finished = true;
 
 }
 
 std::shared_ptr<MapTile> TileWorker::getTileResult() {
 
     m_free = true;
-    return std::move(m_future.get());
+    return m_tile;
 
 }
 

@@ -6,7 +6,6 @@ set(EXECUTABLE_NAME "tangram")
 add_definitions(-DPLATFORM_JS)
 
 find_package(PkgConfig REQUIRED)
-find_package(OpenGL REQUIRED)
 pkg_search_module(GLFW REQUIRED glfw3)
 
 if(NOT GLFW_FOUND)

@@ -116,7 +116,7 @@ void main_loop() {
     last_time = currentTime;
 
     logMsg("render\n");
-    Tangram::update(16);
+    Tangram::update(delta);
     Tangram::render();
 
     glfwSwapBuffers(window);
