@@ -20,6 +20,8 @@ public:
 
     void abort();
 
+    void update();
+
     bool isFinished() const { return m_finished; }
 
     bool isFree() const { return m_free; }
@@ -35,6 +37,9 @@ private:
     bool m_free;
     bool m_aborted;
     bool m_finished;
+
+    std::vector<DataSource::DataReq*> m_requests;
+    int m_reqCount;
 
     std::shared_ptr<MapTile> m_tile;
 };

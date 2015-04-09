@@ -115,7 +115,6 @@ void main_loop() {
     double delta = currentTime - last_time;
     last_time = currentTime;
 
-    logMsg("render\n");
     Tangram::update(delta);
     Tangram::render();
 
@@ -157,7 +156,7 @@ int main(void) {
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
 
-    emscripten_set_main_loop(main_loop, 0, false);
+    emscripten_set_main_loop(main_loop, 0, 1);
 
     Tangram::teardown();
     glfwTerminate();

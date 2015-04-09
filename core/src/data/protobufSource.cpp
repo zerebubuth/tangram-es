@@ -12,13 +12,13 @@ ProtobufSource::ProtobufSource() {
 }
 
 std::shared_ptr<TileData> ProtobufSource::parse(const MapTile& _tile, std::stringstream& _in) {
-    
+
     std::shared_ptr<TileData> tileData = std::make_shared<TileData>();
-    
+
     std::string buffer(std::istreambuf_iterator<char>(_in.rdbuf()), (std::istreambuf_iterator<char>()));
-    
+
     protobuf::message item(buffer.data(), buffer.size());
-    
+
     while(item.next()) {
         if(item.tag == 3) {
             protobuf::message layerMsg = item.getMessage();

@@ -10,10 +10,54 @@ TileWorker::TileWorker() {
     m_free = true;
     m_aborted = false;
     m_finished = false;
+    m_reqCount = 0;
 }
 
 void TileWorker::abort() {
     m_aborted = true;
+}
+
+void TileWorker::update() {
+
+    if (m_finished) {
+        return;
+    }
+
+    static int reqFetched = 0;
+
+    for (auto& req : m_requests) {
+        if (req->m_handled) {
+            reqFetched++;
+
+            MapTile* tile = req->m_tile;
+            View* view = (View*) req->m_view;
+
+            logMsg("Request data size %d, for tile %d %d %d\n", req->m_size, tile->getID().x, tile->getID().y, tile->getID().z);
+
+            std::stringstream out;
+            out << req->m_rawData;
+
+            std::shared_ptr<TileData> tileData = req->m_dataSource->parse(*tile, out);
+
+            std::vector<std::unique_ptr<Style>>* styles = (std::vector<std::unique_ptr<Style>> *) req->m_styles;
+
+            if (tileData) {
+                for (auto& style : *styles) {
+                    style->addData(*tileData, *tile, view->getMapProjection());
+                    tile->update(0, *style, *view);
+                }
+            }
+
+            delete req;
+        }
+    }
+
+    if (reqFetched == m_reqCount) {
+        reqFetched = 0;
+        m_reqCount = 0;
+        m_finished = true;
+        m_requests.clear();
+    }
 }
 
 void TileWorker::load(const TileID &_tile,
@@ -33,26 +77,16 @@ void TileWorker::load(const TileID &_tile,
         if (m_aborted) {
             m_finished = true;
         }
-        if (! dataSource->loadTileData(*m_tile)) {
+        auto req = new DataSource::DataReq {
+            (DataSource *) dataSource.get(), nullptr, 0, m_tile.get(), (void*) &_styles, (void*) &_view, false
+        };
+        m_requests.push_back(req);
+        m_reqCount++;
+        if (! dataSource->loadTileData(*m_tile, req)) {
             logMsg("ERROR: Loading failed for tile [%d, %d, %d]\n", _tile.z, _tile.x, _tile.y);
             continue;
         }
-
-        auto tileData = dataSource->getTileData(_tile);
-
-        // Process data for all styles
-        for (const auto& style : _styles) {
-            if (m_aborted) {
-                m_finished = true;
-            }
-            if (tileData) {
-                style->addData(*tileData, *m_tile, _view.getMapProjection());
-            }
-            m_tile->update(0, *style, _view);
-        }
     }
-
-    m_finished = true;
 
 }
 

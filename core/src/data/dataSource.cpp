@@ -68,11 +68,22 @@ std::unique_ptr<std::string> NetworkDataSource::constructURL(const TileID& _tile
     return std::move(urlPtr);
 }
 
-void onTileFetched(void*, void*, int) {
-    logMsg("Fetching");
+void onHTTPSync(void* _arg, void* _buffer, int _size) {
+    DataSource::DataReq* arg = (DataSource::DataReq *) _arg;
+    const MapTile& tile = *arg->m_tile;
+    NetworkDataSource* dataSource = (NetworkDataSource*) arg->m_dataSource;
+
+    arg->m_rawData = (unsigned char*) _buffer;
+    arg->m_size = _size;
+    arg->m_handled = true;
+    logMsg("onHTTPSync %d %d %d\n", tile.getID().x, tile.getID().y, tile.getID().z);
 }
 
-bool NetworkDataSource::loadTileData(const MapTile& _tile) {
+void onHTTPError(void *arg) {
+    logMsg("Data loading error\n");
+}
+
+bool NetworkDataSource::loadTileData(const MapTile& _tile, DataReq* _req) {
 
     bool success = true; // Begin optimistically
 
@@ -83,8 +94,8 @@ bool NetworkDataSource::loadTileData(const MapTile& _tile) {
 
     std::unique_ptr<std::string> url = constructURL(_tile.getID());
 
-    std::stringstream out;
-    emscripten_async_wget_data(url->c_str(), (void*) &out, NULL, NULL);
+    emscripten_async_wget_data(url->c_str(), (void*) _req, onHTTPSync, onHTTPError);
+
     /*CURL* curlHandle = curl_easy_init();
 
     // out will store the stringStream contents from curl

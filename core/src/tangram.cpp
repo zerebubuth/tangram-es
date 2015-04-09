@@ -95,7 +95,7 @@ namespace Tangram {
             // json tile source
             // std::unique_ptr<DataSource> dataSource(new GeoJsonTile());
             // protobuf tile source
-            std::unique_ptr<DataSource> dataSource(new ProtobufSource());
+            std::unique_ptr<DataSource> dataSource(new GeoJsonSource());
             m_tileManager->addDataSource(std::move(dataSource));
         }
 
@@ -110,7 +110,7 @@ namespace Tangram {
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CCW);
         glCullFace(GL_BACK);
-        glClearColor(0.3f, 0.3f, 0.8f, 1.0f);
+        glClearColor(0.3f, 0.3f, 0.1f, 1.0f);
 
         while (Error::hadGlError("Tangram::initialize()")) {}
 

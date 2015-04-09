@@ -20,10 +20,21 @@ protected:
 
     std::mutex m_mutex; // Used to ensure safe access from async loading threads
 
+public:
+
     /* Parse an I/O response into a <TileData>, returning an empty TileData on failure */
     virtual std::shared_ptr<TileData> parse(const MapTile& _tile, std::stringstream& _in) = 0;
 
-public:
+    struct DataReq {
+        DataSource* m_dataSource;
+        unsigned char* m_rawData;
+        int m_size;
+        MapTile* m_tile;
+        void* m_styles;
+        void* m_view;
+        bool m_handled;
+    };
+
 
     /* Fetch data for a map tile
      *
@@ -31,7 +42,7 @@ public:
      * then stores it to be accessed via <GetTileData>. This method SHALL NOT be called
      * from the main thread.
      */
-    virtual bool loadTileData(const MapTile& _tile) = 0;
+    virtual bool loadTileData(const MapTile& _tile, DataReq* _req) = 0;
 
     /* Returns the data corresponding to a <TileID> */
     virtual std::shared_ptr<TileData> getTileData(const TileID& _tileID);
@@ -44,6 +55,8 @@ public:
 
     DataSource() {}
     virtual ~DataSource() { m_tileStore.clear(); }
+
+    friend void onHTTPSync(void* _arg, void* _buffer, int _size);
 };
 
 class NetworkDataSource : public DataSource {
@@ -66,8 +79,7 @@ public:
     NetworkDataSource();
     virtual ~NetworkDataSource();
 
-    virtual bool loadTileData(const MapTile& _tile) override;
-
+    virtual bool loadTileData(const MapTile& _tile, DataReq* _req) override;
 };
 
 // TODO: Support TopoJSON tiles
