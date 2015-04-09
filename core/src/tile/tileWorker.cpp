@@ -37,17 +37,23 @@ void TileWorker::update() {
             std::stringstream out;
             out << req->m_rawData;
 
+            logMsg("%s\n", req->m_rawData);
+
             std::shared_ptr<TileData> tileData = req->m_dataSource->parse(*tile, out);
 
             std::vector<std::unique_ptr<Style>>* styles = (std::vector<std::unique_ptr<Style>> *) req->m_styles;
 
             if (tileData) {
-                for (auto& style : *styles) {
-                    style->addData(*tileData, *tile, view->getMapProjection());
-                    tile->update(0, *style, *view);
-                }
+                logMsg("adding data\n");
+            //    for (auto& style : *styles) {
+            //        style->addData(*tileData, *tile, view->getMapProjection());
+            //        tile->update(0, *style, *view);
+            //    }
+            } else {
+                logMsg("no tile data");
             }
 
+            free(req->m_rawData);
             delete req;
         }
     }

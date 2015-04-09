@@ -73,7 +73,8 @@ void onHTTPSync(void* _arg, void* _buffer, int _size) {
     const MapTile& tile = *arg->m_tile;
     NetworkDataSource* dataSource = (NetworkDataSource*) arg->m_dataSource;
 
-    arg->m_rawData = (unsigned char*) _buffer;
+    arg->m_rawData = (unsigned char*) malloc(_size);
+    memcpy(arg->m_rawData, _buffer, _size);
     arg->m_size = _size;
     arg->m_handled = true;
     logMsg("onHTTPSync %d %d %d\n", tile.getID().x, tile.getID().y, tile.getID().z);
