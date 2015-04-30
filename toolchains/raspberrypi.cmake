@@ -1,6 +1,6 @@
 # options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fpermissive -g")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} -L/opt/vc/lib/ -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lvcos -lrt -lpthread")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} -L/${PROJECT_SOURCE_DIR}/rpi/include/curl -L/home/varun/Development/firmware/opt/vc/lib -lGLESv2 -lEGL -lbcm_host -lvchiq_arm -lvcos -lrt -lpthread")
 set(CXX_FLAGS_DEBUG "-g -O0")
 set(EXECUTABLE_NAME "tangram")
 
@@ -20,9 +20,10 @@ else()
 endif()
 
 # include headers for rpi-installed libraries
-include_directories(/opt/vc/include/)
-include_directories(/opt/vc/include/interface/vcos/pthreads)
-include_directories(/opt/vc/include/interface/vmcs_host/linux)
+include_directories(/home/varun/Development/firmware/opt/vc/include/)
+include_directories(/home/varun/Development/firmware/opt/vc/include/interface/vcos/pthreads)
+include_directories(/home/varun/Development/firmware/opt/vc/include/interface/vmcs_host/linux)
+include_directories(/home/varun/Development/tangram-es/rpi/include/)
 
 # load core library
 add_subdirectory(${PROJECT_SOURCE_DIR}/core)
