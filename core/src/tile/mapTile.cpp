@@ -23,6 +23,13 @@ MapTile::MapTile(TileID _id, const MapProjection& _projection) : m_id(_id),  m_p
 
 }
 
+MapTile::MapTile(MapTile&& _other) : m_id(std::move(m_id)), m_proxyCounter(std::move(_other.m_proxyCounter)), 
+                                     m_projection(std::move(_other.m_projection)), m_scale(std::move(_other.m_scale)), 
+                                     m_inverseScale(std::move(_other.m_inverseScale)), m_tileOrigin(std::move(_other.m_tileOrigin)), 
+                                     m_modelMatrix(std::move(_other.m_modelMatrix)), m_geometry(std::move(_other.m_geometry)), 
+                                     m_buffers(std::move(_other.m_buffers)) {}
+
+
 MapTile::~MapTile() {
 
     m_geometry.clear();
@@ -61,33 +68,23 @@ void MapTile::update(float _dt, const View& _view) {
 
 }
 
-void MapTile::updateLabels(float _dt, const Style& _style, const View& _view) {
+void MapTile::updateLabels(float _dt, const Style& _style, const View& _view, std::shared_ptr<LabelContainer> _labelContainer) {
+    glm::mat4 mvp = _view.getViewProjectionMatrix() * m_modelMatrix;
+    glm::vec2 screenSize = glm::vec2(_view.getWidth(), _view.getHeight());
     
-    if(m_buffers[_style.getName()]) {
-        auto labelContainer = LabelContainer::GetInstance();
-        auto ftContext = labelContainer->getFontContext();
-        glm::mat4 mvp = _view.getViewProjectionMatrix() * m_modelMatrix;
-        glm::vec2 screenSize = glm::vec2(_view.getWidth(), _view.getHeight());
-        
-        ftContext->lock();
-        
-        for(auto label : labelContainer->getLabels(_style.getName(), getID())) {
-            label->update(mvp, screenSize, _dt);
-        }
-        
-        ftContext->unlock();
+    for(auto& label : _labelContainer->getLabels(_style.getName(), getID())) {
+        label->update(mvp, screenSize, _dt);
     }
 }
 
-void MapTile::pushLabelTransforms(const Style& _style) {
+void MapTile::pushLabelTransforms(const Style& _style, std::shared_ptr<LabelContainer> _labelContainer) {
 
     if(m_buffers[_style.getName()]) {
-        auto labelContainer = LabelContainer::GetInstance();
-        auto ftContext = labelContainer->getFontContext();
+        auto ftContext = _labelContainer->getFontContext();
 
         ftContext->lock();
         
-        for(auto label : labelContainer->getLabels(_style.getName(), getID())) {
+        for(auto& label : _labelContainer->getLabels(_style.getName(), getID())) {
             label->pushTransform();
         }
         
@@ -109,12 +106,9 @@ void MapTile::draw(const Style& _style, const View& _view) {
         glm::mat4 modelViewMatrix = _view.getViewMatrix() * m_modelMatrix;
         glm::mat4 modelViewProjMatrix = _view.getViewProjectionMatrix() * m_modelMatrix;
         
-        glm::mat3 normalMatrix = glm::mat3(modelViewMatrix); // Transforms surface normals into camera space
-        normalMatrix = glm::transpose(glm::inverse(normalMatrix));
-        
         shader->setUniformMatrix4f("u_modelView", glm::value_ptr(modelViewMatrix));
         shader->setUniformMatrix4f("u_modelViewProj", glm::value_ptr(modelViewProjMatrix));
-        shader->setUniformMatrix3f("u_normalMatrix", glm::value_ptr(normalMatrix));
+        shader->setUniformMatrix3f("u_normalMatrix", glm::value_ptr(_view.getNormalMatrix()));
 
         // Set the tile zoom level, using the sign to indicate whether the tile is a proxy
         shader->setUniformf("u_tile_zoom", m_proxyCounter > 0 ? -m_id.z : m_id.z);

@@ -8,18 +8,17 @@
 #include "platform.h"
 #include "tile/tileManager.h"
 #include "view/view.h"
-#include "data/geoJsonSource.h"
-#include "data/protobufSource.h"
-
 #include "style/polygonStyle.h"
 #include "style/polylineStyle.h"
 #include "style/textStyle.h"
 #include "style/debugTextStyle.h"
 #include "style/debugStyle.h"
+#include "style/spriteStyle.h"
+#include "scene/sceneLoader.h"
 #include "scene/scene.h"
-#include "scene/lights.h"
 #include "util/error.h"
 #include "stl_util.hpp"
+#include "util/tileID.h"
 
 namespace Tangram {
 
@@ -40,28 +39,34 @@ namespace Tangram {
         // Create view
         if (!m_view) {
             m_view = std::make_shared<View>();
-            
-            // Move the view to coordinates in Manhattan so we have something interesting to test
-            glm::dvec2 target = m_view->getMapProjection().LonLatToMeters(glm::dvec2(-74.00796, 40.70361));
-            m_view->setPosition(target.x, target.y);
         }
 
         // Create a scene object
         if (!m_scene) {
             m_scene = std::make_shared<Scene>();
+
+            std::shared_ptr<Material> mat(new Material());
+            mat->setAmbientEnabled(true);
+            // mat->setDiffuse("sem.jpg",MappingType::SPHEREMAP);
+            mat->setSpecularEnabled(false);
+            //mat->setNormal("normals.jpg",MappingType::UV);
             
             // Load style(s); hard-coded for now
             std::unique_ptr<Style> polyStyle(new PolygonStyle("Polygon"));
+            polyStyle->setLighting(LightingType::fragment);
             polyStyle->addLayers({
                 "buildings",
                 "water",
                 "earth",
                 "landuse"
             });
+            polyStyle->setMaterial(mat);
             m_scene->addStyle(std::move(polyStyle));
             
             std::unique_ptr<Style> linesStyle(new PolylineStyle("Polyline"));
+            linesStyle->setLighting(LightingType::vertex);
             linesStyle->addLayers({"roads"});
+            // linesStyle->setMaterial(mat);
             m_scene->addStyle(std::move(linesStyle));
 
             m_ftContext = std::make_shared<FontContext>();
@@ -89,12 +94,9 @@ namespace Tangram {
             std::unique_ptr<DebugStyle> debugStyle(new DebugStyle("Debug"));
             m_scene->addStyle(std::move(debugStyle));
 
-            //  Directional light with white diffuse color pointing Northeast and down
-            auto directionalLight = std::make_shared<DirectionalLight>("dLight");
-            directionalLight->setAmbientColor({0.3, 0.3, 0.3, 1.0});
-            directionalLight->setDiffuseColor({0.7, 0.7, 0.7, 1.0});
-            directionalLight->setDirection({1.0, 1.0, -1.0});
-            m_scene->addLight(directionalLight);
+            // Testing loading image
+			// std::unique_ptr<Style> spriteStyle(new SpriteStyle("Sprite"));
+            // m_scene->addStyle(std::move(spriteStyle));
         }
 
         // Create a tileManager
@@ -104,14 +106,17 @@ namespace Tangram {
             // Pass references to the view and scene into the tile manager
             m_tileManager->setView(m_view);
             m_tileManager->setScene(m_scene);
-            
-            // Add a tile data source
-            // json tile source
-            // std::unique_ptr<DataSource> dataSource(new GeoJsonTile());
-            // protobuf tile source
-            std::unique_ptr<DataSource> dataSource(new ProtobufSource());
-            m_tileManager->addDataSource(std::move(dataSource));
         }
+
+        SceneLoader loader;
+        loader.loadScene("config.yaml", *m_scene, *m_tileManager, *m_view);
+
+        setNetworkRequestCallback([&](std::vector<char>&& _rawData, TileID _tileId, int _dataSourceID) {
+
+            m_tileManager->addToWorkerQueue(std::move(_rawData), _tileId, _dataSourceID);
+            requestRender();
+
+        });
 
         // Set up openGL state
         glDisable(GL_BLEND);
@@ -144,6 +149,7 @@ namespace Tangram {
         
         if (m_ftContext) {
             m_ftContext->setScreenSize(m_view->getWidth(), m_view->getHeight());
+            m_labelContainer->setScreenSize(m_view->getWidth(), m_view->getHeight());
         }
 
         while (Error::hadGlError("Tangram::resize()")) {}
@@ -159,29 +165,29 @@ namespace Tangram {
 
             m_tileManager->updateTileSet();
 
-            if (m_view->changedOnLastUpdate()) {
+            if(m_view->changedOnLastUpdate() || m_tileManager->hasTileSetChanged()) {
+                m_labelContainer->setViewProjectionMatrix(m_view->getViewProjectionMatrix());
+                
                 for (const auto& mapIDandTile : m_tileManager->getVisibleTiles()) {
                     const std::shared_ptr<MapTile>& tile = mapIDandTile.second;
                     tile->update(_dt, *m_view);
                 }
-            }
-
-            if(m_view->changedOnLastUpdate() || m_tileManager->hasTileSetChanged()) {
+                
                 // update labels for specific style
                 for (const auto& style : m_scene->getStyles()) {
                     for (const auto& mapIDandTile : m_tileManager->getVisibleTiles()) {
                         const std::shared_ptr<MapTile>& tile = mapIDandTile.second;
-                        tile->updateLabels(_dt, *style, *m_view);
+                        tile->updateLabels(_dt, *style, *m_view, m_labelContainer);
                     }
                 }
                 
                 // manage occlusions
-                LabelContainer::GetInstance()->updateOcclusions();
+                m_labelContainer->updateOcclusions();
                 
                 for (const auto& style : m_scene->getStyles()) {
                     for (const auto& mapIDandTile : m_tileManager->getVisibleTiles()) {
                         const std::shared_ptr<MapTile>& tile = mapIDandTile.second;
-                        tile->pushLabelTransforms(*style);
+                        tile->pushLabelTransforms(*style, m_labelContainer);
                     }
                 }
             }
@@ -322,5 +328,6 @@ namespace Tangram {
         VboMesh::invalidateAllVBOs();
         
     }
-    
+
 }
+

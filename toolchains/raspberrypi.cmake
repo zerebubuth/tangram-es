@@ -10,14 +10,24 @@ add_definitions(-DPLATFORM_RPI)
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-	if(NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
-		message(FATAL_ERROR "Please install g++ version 4.7 or greater")
+	if(NOT (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8))
+		message(FATAL_ERROR "Please install g++ version 4.8 or greater")
 	else()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	endif()
 else()
 	message(FATAL_ERROR "Please install a C++11 compatible compiler")
 endif()
+
+# add sources and include headers
+find_sources_and_include_directories(
+	${PROJECT_SOURCE_DIR}/rpi/src/*.h 
+	${PROJECT_SOURCE_DIR}/rpi/src/*.cpp)
+
+# add sources and include headers
+find_sources_and_include_directories(
+    ${PROJECT_SOURCE_DIR}/linux/src/netWorkerData.*
+    ${PROJECT_SOURCE_DIR}/linux/src/netWorkerData.*)
 
 # include headers for rpi-installed libraries
 include_directories(/home/varun/Development/firmware/opt/vc/include/)
@@ -29,11 +39,6 @@ include_directories(/home/varun/Development/tangram-es/rpi/include/)
 add_subdirectory(${PROJECT_SOURCE_DIR}/core)
 include_directories(${CORE_INCLUDE_DIRS})
 include_directories(${CORE_LIBRARIES_INCLUDE_DIRS})
-
-# add sources and include headers
-find_sources_and_include_directories(
-	${PROJECT_SOURCE_DIR}/rpi/src/*.h 
-	${PROJECT_SOURCE_DIR}/rpi/src/*.cpp)
 
 # link and build functions
 function(link_libraries)

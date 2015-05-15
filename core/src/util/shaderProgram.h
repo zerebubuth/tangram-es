@@ -6,9 +6,11 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include "texture.h"
 
 #include "glm/glm.hpp"
 
+#include "util/texture.h"
 // TODO:
 // each ShaderProgram instance has a map of <string, vector<string>> pairs
 // the string identifies the tag to replace, the vector is a list of strings of GLSL to inject
@@ -31,6 +33,9 @@ public:
 
     /*  Add a block of GLSL to be injected at "#pragma tangram: [_tagName]" in the shader sources */
     void addSourceBlock(const std::string& _tagName, const std::string& _glslSource, bool _allowDuplicate = true);
+
+    /*  Remove a block of GLSL to be injected at "#pragma tangram: [_tagName]" in the shader sources */
+    void removeSourceBlock(const std::string& _tagName, const std::string& _glslSource);
 
     /*
      * Applies all source blocks to the source strings for this shader and attempts to compile
@@ -133,5 +138,8 @@ private:
     GLuint makeCompiledShader(const std::string& _src, GLenum _type);
     
     void applySourceBlocks(std::string& _vertSrcOut, std::string& _fragSrcOut);
+    
+    std::unordered_map<std::string, Texture::TextureSlot> m_textureSlots;
+    GLuint m_freeTextureUnit;
     
 };

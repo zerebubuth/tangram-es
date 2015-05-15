@@ -1,15 +1,21 @@
 #include "style.h"
 #include "scene/scene.h"
 
-/*
- * Style Class Methods
- */
-
 Style::Style(std::string _name, GLenum _drawMode) : m_name(_name), m_drawMode(_drawMode) {
 }
 
 Style::~Style() {
-    m_layers.clear();
+}
+
+void Style::setMaterial(const std::shared_ptr<Material>& _material){
+
+    if ( m_material ) {
+        m_material->removeFromProgram(m_shaderProgram);
+    }
+
+    m_material = _material;
+    m_material->injectOnProgram(m_shaderProgram);
+    
 }
 
 void Style::addLayers(std::vector<std::string> _layers) {
@@ -67,17 +73,37 @@ void Style::addData(TileData& _data, MapTile& _tile, const MapProjection& _mapPr
 }
 
 void Style::setupFrame(const std::shared_ptr<View>& _view, const std::shared_ptr<Scene>& _scene) {
+    
     // Set up material
-    m_material.setupProgram(m_shaderProgram);
+    if (!m_material) {
+        setMaterial(std::make_shared<Material>());
+    }
+    
+    m_material->setupProgram(m_shaderProgram);
     
     // Set up lights
     for (const auto& light : _scene->getLights()) {
-        light.second->setupProgram(m_shaderProgram);
+        light.second->setupProgram(_view,m_shaderProgram);
     }
     
     m_shaderProgram->setUniformf("u_zoom", _view->getZoom());
 }
 
+void Style::setLighting( LightingType _lType ){
+
+    if ( _lType == LightingType::vertex ) {
+        m_shaderProgram->removeSourceBlock("defines", "#define TANGRAM_LIGHTING_FRAGMENT\n");
+        m_shaderProgram->addSourceBlock(   "defines", "#define TANGRAM_LIGHTING_VERTEX\n", false);
+    } else if  (_lType == LightingType::fragment ) {
+        m_shaderProgram->removeSourceBlock("defines", "#define TANGRAM_LIGHTING_VERTEX\n");
+        m_shaderProgram->addSourceBlock(   "defines", "#define TANGRAM_LIGHTING_FRAGMENT\n", false);
+    } else {
+        m_shaderProgram->removeSourceBlock("defines", "#define TANGRAM_LIGHTING_VERTEX\n");
+        m_shaderProgram->removeSourceBlock("defines", "#define TANGRAM_LIGHTING_FRAGMENT\n");
+    }
+    
+}
+    
 void Style::setupTile(const std::shared_ptr<MapTile>& _tile) {
     // No-op by default
 }
