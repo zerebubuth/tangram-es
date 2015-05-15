@@ -138,6 +138,20 @@ You can also move the map with `w`, `a`, `s`, and `z`, zoom in and out with `-` 
 
 Download and install emscripten : [instructions](http://kripken.github.io/emscripten-site/docs/getting_started/downloads.html)
 
+```bash
+emsdk update
+emsdk install latest
+```
+
+```
+export EMSCRIPTEN=PATH_TO_EMSDK_PORTABLE
+```
+Example :
+
+```
+export EMSCRIPTEN=~/emsdk_portable/emscripten/1.29.0/
+```
+
 ```
 make js
 ```
