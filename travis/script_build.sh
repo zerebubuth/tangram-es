@@ -9,6 +9,12 @@ if [[ ${PLATFORM} == "osx" ]]; then
     make -j osx
 fi
 
+if [[ ${PLAFORM} == "js" ]]; then
+    # Build emscripten project
+    echo "Building emscripten project"
+    make js
+fi
+
 if [[ ${PLATFORM} == "linux" ]]; then
     # Build linux project
     echo "Building linux project"

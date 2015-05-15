@@ -12,22 +12,37 @@ if [[ ${PLATFORM} == "osx" ]]; then
     brew install glfw3
 fi
 
+if [[ ${PLATFORM} == "js" ]]; then
+    EMSCRIPTEN_VERSION="1.29.0"
+
+    wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
+    tar -xvf emsdk-portable.tar.gz
+
+    cd emsdk_portable/
+    ./emsdk update
+    ./emsdk install latest
+    source ./emsdk_env.sh
+    export EMSCRIPTEN=./emscripten/${EMSCRIPTEN_VERSION}/
+
+    cd ../
+fi
+
 if [[ ${PLATFORM} == "linux" ]]; then
-    
+
     GLFW_VERSION="3.1.1"
-    
+
     #Add PPA for CMake 2.8.11
     sudo add-apt-repository -y ppa:kalakris/cmake > /dev/null
     #Add PPA for gcc-4.8
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test > /dev/null
-    
+
     sudo apt-get update -qq
 
     #Install a c++11 compatible compiler
     sudo apt-get install -y -qq gcc-4.8 g++-4.8
     export CXX=g++-4.8
     export CC=gcc-4.8
-    
+
     #Install X11, OpenGL, and CMake for GLFW
     sudo apt-get install -y -qq xorg-dev libglu1-mesa-dev cmake
 
@@ -38,7 +53,7 @@ if [[ ${PLATFORM} == "linux" ]]; then
     cmake .
     sudo make install
     cd ../
-    
+
 fi
 
 if [[ ${PLATFORM} == "android" ]]; then
