@@ -6,11 +6,22 @@
 
 #include "platform.h"
 
+static std::function<void(std::vector<char>&&, TileID, int)> s_networkCallback;
+bool s_continuousRendering = true;
+
 void logMsg(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    vfprintf(stdout, fmt, args);
+    emscripten_log(EM_LOG_CONSOLE, args);
     va_end(args);
+}
+
+void setContinuousRendering(bool _isContinuous) {
+    s_continuousRendering = _isContinuous;
+}
+
+bool isContinuousRendering() {
+    return s_continuousRendering;
 }
 
 std::string stringFromResource(const char* _path) {
@@ -54,3 +65,20 @@ unsigned char* bytesFromResource(const char* _path, unsigned int* _size) {
 
     return reinterpret_cast<unsigned char *>(cdata);
 }
+
+bool startNetworkRequest(const std::string& _url, const TileID& _tileID, const int _dataSourceID) {
+    //emscripten_async_wget_data(NULL, NULL, NULL, NULL);
+}
+
+void cancelNetworkRequest(const std::string& _url) {
+
+}
+
+void setNetworkRequestCallback(std::function<void(std::vector<char>&&, TileID, int)>&& _callback) {
+    s_networkCallback = _callback;
+}
+
+void requestRender() {
+    //glfwPostEmptyEvent();
+}
+

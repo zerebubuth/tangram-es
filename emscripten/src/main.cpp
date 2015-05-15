@@ -1,7 +1,6 @@
 #include "tangram.h"
 #include "platform.h"
 #include "gl.h"
-#include <emscripten/emscripten.h>
 
 // Input handling
 // ==============
@@ -120,8 +119,11 @@ void main_loop() {
 
     glfwSwapBuffers(window);
 
-    glfwPollEvents();
-
+    if (isContinuousRendering()) {
+        glfwPollEvents();
+    } else {
+        glfwWaitEvents();
+    }
 }
 
 // Main program
