@@ -12,7 +12,7 @@ fi
 if [[ ${PLATFORM} == "linux" ]]; then
     # Build linux project
     echo "Building linux project"
-    make -j linux
+    make linux
 fi
 
 if [[ ${PLATFORM} == "ios" ]]; then
@@ -25,6 +25,6 @@ if [[ ${PLATFORM} == "android" ]]; then
     # Build android project
     echo "Building android project"
     export TERM=dumb
-    make -j android
+    make android
 fi
 

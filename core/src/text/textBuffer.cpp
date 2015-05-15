@@ -25,11 +25,18 @@ std::shared_ptr<Texture> TextBuffer::getTextureTransform() const {
     return m_transform;
 }
 
-bool TextBuffer::getVertices(std::vector<float>* _vertices, int* _nVerts) {
+int TextBuffer::getVerticesSize() {
+    bind();
+    int size = glfonsVerticesSize(m_fsContext);
+    unbind();
+    return size;
+}
+
+bool TextBuffer::getVertices(float* _vertices) {
     bool res;
 
     bind();
-    res = glfonsVertices(m_fsContext, _vertices, _nVerts);
+    res = glfonsVertices(m_fsContext, _vertices);
     unbind();
 
     return res;
@@ -91,4 +98,12 @@ void TextBuffer::unbind() {
         glfonsBindBuffer(m_fsContext, 0);
         m_bound = false;
     }
+}
+
+glm::vec4 TextBuffer::getBBox(fsuint _textID) {
+    glm::vec4 bbox;
+    bind();
+    glfonsGetBBox(m_fsContext, _textID, &bbox.x, &bbox.y, &bbox.z, &bbox.w);
+    unbind();
+    return bbox;
 }

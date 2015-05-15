@@ -1,3 +1,5 @@
+#include <curl/curl.h>
+
 #include "tangram.h"
 #include "platform.h"
 #include "gl.h"
@@ -66,7 +68,7 @@ void scroll_callback(GLFWwindow* window, double scrollx, double scrolly) {
     double x, y;
     glfwGetCursorPos(window, &x, &y);
 
-    bool rotating = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+    bool rotating = glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS;
     bool shoving = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
 
     if (shoving) {
@@ -120,7 +122,7 @@ int main(void) {
 
     /* Create a windowed mode window and its OpenGL context */
     glfwWindowHint(GLFW_SAMPLES, 2);
-    window = glfwCreateWindow(width, height, "GLFW Window", NULL, NULL);
+    window = glfwCreateWindow(width, height, "Tangram ES", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -129,6 +131,9 @@ int main(void) {
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
+    /* Do Curl Init */
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    
     Tangram::initialize();
     Tangram::resize(width, height);
 
@@ -149,6 +154,8 @@ int main(void) {
         double delta = currentTime - lastTime;
         lastTime = currentTime;
         
+        processNetworkQueue();
+
         /* Render here */
         Tangram::update(delta);
         Tangram::render();
@@ -157,10 +164,15 @@ int main(void) {
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
-        glfwPollEvents();
+        if (isContinuousRendering()) {
+            glfwPollEvents();
+        } else {
+            glfwWaitEvents();
+        }
     }
     
     Tangram::teardown();
+    curl_global_cleanup();
     glfwTerminate();
     return 0;
 }

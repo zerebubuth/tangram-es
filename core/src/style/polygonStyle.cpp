@@ -4,11 +4,6 @@
 #include "tangram.h"
 
 PolygonStyle::PolygonStyle(std::string _name, GLenum _drawMode) : Style(_name, _drawMode) {
-    m_material.setEmissionEnabled(false);
-    m_material.setAmbientEnabled(true);
-    m_material.setDiffuse(glm::vec4(1.0));
-    m_material.setSpecularEnabled(true);
-    
     constructVertexLayout();
     constructShaderProgram();
 }
@@ -33,8 +28,6 @@ void PolygonStyle::constructShaderProgram() {
     
     m_shaderProgram = std::make_shared<ShaderProgram>();
     m_shaderProgram->setSourceStrings(fragShaderSrcStr, vertShaderSrcStr);
-
-    m_material.injectOnProgram(m_shaderProgram); // This is a must for lighting !!
 }
 
 void PolygonStyle::buildPoint(Point& _point, std::string& _layer, Properties& _props, VboMesh& _mesh) const {
@@ -58,15 +51,9 @@ void PolygonStyle::buildLine(Line& _line, std::string& _layer, Properties& _prop
         glm::vec2 u = texcoords[i];
         vertices.push_back({ p.x, p.y, p.z, n.x, n.y, n.z, u.x, u.y, abgr });
     }
-    
-    // Make sure indices get correctly offset
-    int vertOffset = _mesh.numVertices();
-    for (auto& ind : indices) {
-        ind += vertOffset;
-    }
-    
-    _mesh.addVertices((GLbyte*)vertices.data(), (int)vertices.size());
-    _mesh.addIndices(indices.data(), (int)indices.size());
+
+    auto& mesh = static_cast<PolygonStyle::Mesh&>(_mesh);
+    mesh.addVertices(std::move(vertices),std::move(indices));
 }
 
 void PolygonStyle::buildPolygon(Polygon& _polygon, std::string& _layer, Properties& _props, VboMesh& _mesh) const {
@@ -142,12 +129,6 @@ void PolygonStyle::buildPolygon(Polygon& _polygon, std::string& _layer, Properti
     }
     */
     
-    // Make sure indices get correctly offset
-    int vertOffset = _mesh.numVertices();
-    for (auto& ind : indices) {
-        ind += vertOffset;
-    }
-    
-    _mesh.addVertices((GLbyte*)vertices.data(), (int)vertices.size());
-    _mesh.addIndices(indices.data(), (int)indices.size());
+    auto& mesh = static_cast<PolygonStyle::Mesh&>(_mesh);
+    mesh.addVertices(std::move(vertices), std::move(indices));
 }

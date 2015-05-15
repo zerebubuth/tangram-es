@@ -8,8 +8,14 @@
 
 #import <UIKit/UIKit.h>
 #import <GLKit/GLKit.h>
-#include "tangram.h"
+
+struct TileID;
 
 @interface ViewController : GLKViewController <UIGestureRecognizerDelegate>
+
+@property (nonatomic) bool continuous;
+- (void)renderOnce;
+- (BOOL)networkRequestWithUrl:(NSString *)url TileID:(TileID)tileID DataSourceID:(NSNumber*)dataSourceID;
+- (void)cancelNetworkRequestWithUrl:(NSString *)url;
 
 @end
