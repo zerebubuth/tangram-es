@@ -15,12 +15,6 @@ fi
 if [[ ${PLATFORM} == "js" ]]; then
     EMSCRIPTEN_VERSION="1.29.0"
 
-    sudo add-apt-repository -y ppa:kalakris/cmake > /dev/null
-
-    sudo apt-get update -qq
-
-    sudo apt-get install cmake
-
     wget https://s3.amazonaws.com/mozilla-games/emscripten/releases/emsdk-portable.tar.gz
     tar -xvf emsdk-portable.tar.gz
 
