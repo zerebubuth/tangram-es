@@ -17,9 +17,9 @@ matrix:
         - os: linux
           env: PLATFORM=linux
           compiler: gcc
-        - os: js
+        - os: osx
           env: PLATFORM=js
-          compiler: emcc
+          compiler: clang
 
 before_install:
     - git submodule init && git submodule update
