@@ -19,14 +19,11 @@ set(CORE_LIB_DEPS -lcurl)
 add_subdirectory(${PROJECT_SOURCE_DIR}/core)
 include_recursive_dirs(${PROJECT_SOURCE_DIR}/core/src/*.h)
 
-<<<<<<< HEAD
 # add sources and include headers
 find_sources_and_include_directories(
     ${PROJECT_SOURCE_DIR}/linux/src/*.h
     ${PROJECT_SOURCE_DIR}/linux/src/*.cpp)
 
-=======
->>>>>>> master
 # link and build functions
 function(link_libraries)
 
