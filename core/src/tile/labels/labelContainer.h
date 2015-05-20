@@ -33,6 +33,7 @@ public:
     
     // Could return a null pointer
     std::shared_ptr<Label> getWeakLabel() { return m_label.lock(); }
+    std::weak_ptr<Label> getLabel() { return m_label; }
 };
 
 
@@ -73,6 +74,8 @@ private:
     LabelContainer();
     std::vector<LabelUnit> m_labelUnits;
     std::vector<LabelUnit> m_pendingLabelUnits;
+
+    std::vector<std::weak_ptr<Label>> m_placedLabels;
 
     // reference to the <FontContext>
     std::shared_ptr<FontContext> m_ftContext;

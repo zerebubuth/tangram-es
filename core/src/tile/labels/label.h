@@ -48,10 +48,12 @@ public:
     std::string getText() { return m_text; }
     
     void setVisible(bool _visible);
+    void setCollisionChecked(bool _checked);
     
     bool isOutOfScreen() const { return m_outOfScreen; }
     
     bool isVisible() const { return m_visible; }
+    bool isCollisionChecked() const { return m_collisionChecked; }
     
     void update(const glm::mat4& _mvp, const glm::vec2& _screenSize, float _dt);
 
@@ -72,6 +74,7 @@ private:
     
     bool m_dirty;
     bool m_visible;
+    bool m_collisionChecked;
     bool m_outOfScreen;
     
     isect2d::OBB m_obb;

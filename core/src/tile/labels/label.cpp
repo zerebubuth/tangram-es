@@ -5,8 +5,9 @@ Label::Label(LabelTransform _transform, std::string _text, fsuint _id, Type _typ
     m_transform(_transform),
     m_text(_text), m_id(_id){
 
-    m_visible = true;
+    m_visible = false;
     m_dirty = false;
+    m_collisionChecked = false;
 }
 
 Label::~Label() {}
@@ -22,6 +23,11 @@ void Label::rasterize(std::shared_ptr<TextBuffer>& _buffer) {
 
 void Label::setVisible(bool _visible) {
     m_visible = _visible;
+    m_dirty = true;
+}
+
+void Label::setCollisionChecked(bool _checked) {
+    m_collisionChecked = _checked;
     m_dirty = true;
 }
 

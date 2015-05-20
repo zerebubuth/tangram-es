@@ -34,6 +34,36 @@ bool LabelContainer::addLabel(MapTile& _tile, const std::string& _styleName, Lab
 }
 
 void LabelContainer::updateOcclusions() {
+    
+    /*
+     * update placed labels
+     */
+    for(int i = 0; i < m_placedLabels.size(); i++) {
+        auto label1 = m_placedLabels[i].lock();
+        if(label1 == nullptr) {
+            m_placedLabels[i--] = std::move(m_placedLabels[m_placedLabels.size() - 1]);
+            m_placedLabels.pop_back();
+            continue;
+        }
+        for(int j = i+1; j < m_placedLabels.size(); j++) {
+            auto label2 = m_placedLabels[j].lock();
+            if(label2 == nullptr) {
+                m_placedLabels[j--] = std::move(m_placedLabels[m_placedLabels.size() - 1]);
+                m_placedLabels.pop_back();
+                continue;
+            }
+            label1->setVisible(true);
+            label2->setVisible(true);
+            if(label1->getAABB().intersect(label2->getAABB())) {
+                if(intersect(label1->getOBB(), label2->getOBB())) {
+                    label2->setVisible(false);
+                    m_placedLabels[j--] = std::move(m_placedLabels[m_placedLabels.size() - 1]);
+                    m_placedLabels.pop_back();
+                }
+            }
+        }
+    }
+
     // merge pending labels from threads
     m_labelUnits.reserve(m_labelUnits.size() + m_pendingLabelUnits.size());
     {
@@ -42,48 +72,43 @@ void LabelContainer::updateOcclusions() {
         std::vector<LabelUnit>().swap(m_pendingLabelUnits);
     }
 
-    std::set<std::pair<Label*, Label*>> occlusions;
-    std::vector<isect2d::AABB> aabbs;
-    
+    /*
+     *  check all labels with placed labels
+     */
+    m_placedLabels.reserve(m_placedLabels.size() + m_labelUnits.size());
     for(int i = 0; i < m_labelUnits.size(); i++) {
-        auto& labelUnit = m_labelUnits[i];
-        auto label = labelUnit.getWeakLabel();
-        
-        if (label == nullptr) {
-            m_labelUnits[i] = std::move(m_labelUnits[m_labelUnits.size() - 1]);
+        auto label = m_labelUnits[i].getWeakLabel();
+        if(label == nullptr) {
+            m_labelUnits[i--] = std::move(m_labelUnits[m_labelUnits.size() - 1]);
             m_labelUnits.pop_back();
             continue;
         }
-        
-        if (!label->isVisible() || label->isOutOfScreen() || label->getType() == Label::Type::DEBUG) {
+        if ((label->isCollisionChecked() && !label->isVisible()) || label->isOutOfScreen() || label->getType() == Label::Type::DEBUG) {
             continue;
         }
-        
-        isect2d::AABB aabb = label->getAABB();
-        aabb.m_userData = (void*) label.get();
-        aabbs.push_back(aabb);
-    }
-    
-    // broad phase
-    auto pairs = intersect(aabbs);
-    
-    for (auto pair : pairs) {
-        const auto& aabb1 = aabbs[pair.first];
-        const auto& aabb2 = aabbs[pair.second];
-        
-        auto l1 = (Label*) aabb1.m_userData;
-        auto l2 = (Label*) aabb2.m_userData;
-        
-        // narrow phase
-        if (intersect(l1->getOBB(), l2->getOBB())) {
-            occlusions.insert({ l1, l2 });
+        label->setCollisionChecked(true);
+        for(int j = 0; j < m_placedLabels.size(); j++) {
+            auto placedLabel = m_placedLabels[j].lock();
+            if(placedLabel == label) {
+                continue;
+            }
+            if(placedLabel->getAABB().intersect(label->getAABB())) {
+                if(intersect(placedLabel->getOBB(), label->getOBB())) {
+                    /*
+                     * already placed labels have more priority and hence make to other label is not visible
+                     */
+                    label->setVisible(false);
+                    break;
+                }
+            }
+            if(!label->isVisible()) {
+                label->setVisible(true);
+                m_placedLabels.push_back(m_labelUnits[i].getLabel());
+            }
         }
-    }
-    
-    // no priorities, only occlude one of the two occluded label
-    for (auto& pair : occlusions) {
-        if(pair.second->isVisible()) {
-            pair.first->setVisible(false);
+        if(m_placedLabels.size() == 0) {
+            label->setVisible(true);
+            m_placedLabels.push_back(m_labelUnits[i].getLabel());
         }
     }
 }
