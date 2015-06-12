@@ -19,6 +19,14 @@
 #define glDepthRangef glDepthRange
 #endif
 
+#ifdef PLATFORM_WINDOWS
+#include <glfw3.h>
+#include <GL\GL.h>
+#include <GL\glext.h>
+#define glClearDepthf glClearDepth
+#define glDepthRangef glDepthRange
+#endif
+
 #ifdef PLATFORM_LINUX
 #define GL_GLEXT_PROTOTYPES
 #include <GLFW/glfw3.h>
