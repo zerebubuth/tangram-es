@@ -6,18 +6,18 @@
 Material::Material() {
 }
 
-void Material::setEmission(const glm::vec4 _emission){
+void Material::setEmission(const glm::vec4& _emission){
     m_emission = _emission;
     m_emission_texture.reset();
     setEmissionEnabled(true);
 }
 
-void Material::setEmission(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setEmission(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     std::shared_ptr<Texture> texture(new Texture(_file));
     setEmission(texture, _type, _scale, _amount);
 }
 
-void Material::setEmission(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setEmission(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     m_emission_texture = _texture;
     m_emission_texture_mapping = _type;
     m_emission_texture_scale = _scale;
@@ -25,18 +25,18 @@ void Material::setEmission(std::shared_ptr<Texture> _texture, MappingType _type,
     setEmissionEnabled((bool)_texture);
 }
 
-void Material::setAmbient(const glm::vec4 _ambient){
+void Material::setAmbient(const glm::vec4& _ambient){
     m_ambient = _ambient;
     m_ambient_texture.reset();
     setAmbientEnabled(true);
 }
 
-void Material::setAmbient(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setAmbient(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     std::shared_ptr<Texture> texture(new Texture(_file));
     setAmbient(texture, _type, _scale, _amount);
 }
 
-void Material::setAmbient(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setAmbient(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     m_ambient_texture = _texture;
     m_ambient_texture_mapping = _type;
     m_ambient_texture_scale = _scale;
@@ -44,18 +44,18 @@ void Material::setAmbient(std::shared_ptr<Texture> _texture, MappingType _type, 
     setAmbientEnabled((bool)_texture);
 }
 
-void Material::setDiffuse(const glm::vec4 _diffuse){
+void Material::setDiffuse(const glm::vec4& _diffuse){
     m_diffuse = _diffuse;
     m_diffuse_texture.reset();
     setDiffuseEnabled(true);
 }
 
-void Material::setDiffuse(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setDiffuse(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     std::shared_ptr<Texture> texture(new Texture(_file));
     setDiffuse(texture, _type, _scale, _amount);
 }
 
-void Material::setDiffuse(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setDiffuse(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     m_diffuse_texture = _texture;
     m_diffuse_texture_mapping = _type;
     m_diffuse_texture_scale = _scale;
@@ -63,19 +63,19 @@ void Material::setDiffuse(std::shared_ptr<Texture> _texture, MappingType _type, 
     setDiffuseEnabled((bool)_texture);
 }
 
-void Material::setSpecular(const glm::vec4 _specular, float _shininess){
+void Material::setSpecular(const glm::vec4& _specular, float _shininess){
     m_specular = _specular;
     m_shininess = _shininess;
     m_specular_texture.reset();
     setSpecularEnabled(true);
 }
 
-void Material::setSpecular(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setSpecular(const std::string &_file, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     std::shared_ptr<Texture> texture(new Texture(_file));
     setSpecular(texture, _type, _scale, _amount);
 }
 
-void Material::setSpecular(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4 _amount){
+void Material::setSpecular(std::shared_ptr<Texture> _texture, MappingType _type, glm::vec3 _scale, glm::vec4& _amount){
     m_specular_texture = _texture;
     m_specular_texture_mapping = _type;
     m_specular_texture_scale = _scale;

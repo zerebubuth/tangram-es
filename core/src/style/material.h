@@ -30,27 +30,27 @@ public:
 
     /*  Emission color is by default disabled and vec4(0.0).
      *  Setting this property enables it and changes require reloading the shader. */
-    void setEmission(const glm::vec4 _emission);
-    void setEmission(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
-    void setEmission(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
+    void setEmission(const glm::vec4& _emission);
+    void setEmission(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
+    void setEmission(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
 
     /*  Ambient color is by default disabled and vec4(1.0).
      *  Setting this property enables it and changes require reloading the shader. */
-    void setAmbient(const glm::vec4 _ambient);
-    void setAmbient(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
-    void setAmbient(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
+    void setAmbient(const glm::vec4& _ambient);
+    void setAmbient(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
+    void setAmbient(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
 
     /*  Diffuse color is by default enabled and vec4(1.0).
      *  Changes require reloading the shader. */
-    void setDiffuse(const glm::vec4 _diffuse);
-    void setDiffuse(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
-    void setDiffuse(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
+    void setDiffuse(const glm::vec4& _diffuse);
+    void setDiffuse(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
+    void setDiffuse(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
 
     /*  Specular color is by default disabled and vec4(0.2) with a shininess factor of 0.2.
      *  Setting this property enables it and changes require reloading the shader. */
-    void setSpecular(const glm::vec4 _specular, float _shininess);
-    void setSpecular(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
-    void setSpecular(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4 _amount = glm::vec4(1.));
+    void setSpecular(const glm::vec4& _specular, float _shininess);
+    void setSpecular(const std::string &_file, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
+    void setSpecular(std::shared_ptr<Texture> _texture, MappingType _type = MappingType::UV, glm::vec3 _scale = glm::vec3(1.), glm::vec4& _amount = glm::vec4(1.));
 
     /* Enable or disable emission colors */
     void setEmissionEnabled(bool _enable);
