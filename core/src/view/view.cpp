@@ -1,7 +1,9 @@
 #include "view.h"
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <functional>
+#include <algorithm>
 
 #include "util/tileID.h"
 #include "platform.h"

@@ -3,6 +3,8 @@
 #include "glm/glm.hpp"
 #include "text/textBuffer.h"
 #include "isect2d.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <string>
 
 struct FadeEffect {
