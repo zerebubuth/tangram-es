@@ -29,7 +29,7 @@ void init(ViewController* _controller);
 void NSurlInit();
 #endif
 
-#if (defined PLATFORM_LINUX) || (defined PLATFORM_RPI)
+#if (defined PLATFORM_LINUX) || (defined PLATFORM_RPI) || (defined PLATFORM_WINDOWS)
 void processNetworkQueue();
 #endif
 
