@@ -14,7 +14,7 @@ if(UNIT_TESTS)
 endif()
 
 # platform lookup
-set(SUPPORTED_TARGETS darwin ios android raspberrypi linux)
+set(SUPPORTED_TARGETS windows darwin ios android raspberrypi linux)
 
 if(NOT PLATFORM_TARGET)
     string(TOLOWER "${CMAKE_SYSTEM_NAME}" varplatform)
