@@ -5,7 +5,7 @@ set(WIN_DEPENDENCIES_DIR ${PROJECT_SOURCE_DIR}/windows/dependencies)
 set(LIBCURL_DIR "C:/Program Files/cURL")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11" )
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(CXX_FLAGS_DEBUG "-g -O0")
 set(EXECUTABLE_NAME "tangram")
 
