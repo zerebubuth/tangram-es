@@ -1,5 +1,5 @@
 #pragma once
- 
+
 #include <memory>
 #include "glm/glm.hpp"
 
@@ -30,18 +30,18 @@ public:
     Light(const std::string& _name, bool _dynamic = false);
 
     virtual ~Light();
-    
+
     /*  This name is used to construct the uniform name to be pass to the shader */
     virtual void setInstanceName(const std::string &_name);
 
     /*  Set Ambient Color. Which is constant across the scene */
-    virtual void setAmbientColor(const glm::vec4& _ambient);
+    virtual void setAmbientColor(const glm::vec4 _ambient);
 
     /*  Set Diffuse Color. What we generaly understand for color of a light */
-    virtual void setDiffuseColor(const glm::vec4& _diffuse);
+    virtual void setDiffuseColor(const glm::vec4 _diffuse);
 
     /*  Set Specular Color. This are the intense reflections of a light. AKA shinny spot */
-    virtual void setSpecularColor(const glm::vec4& _specular);
+    virtual void setSpecularColor(const glm::vec4 _specular);
 
     /*  Set the origin relative to which this light will be positioned */
     virtual void setOrigin( LightOrigin _origin );
@@ -60,7 +60,7 @@ public:
 
     /*  Pass the uniforms for this particular DYNAMICAL light on the passed shader */
     virtual void setupProgram(const std::shared_ptr<View>& _view, std::shared_ptr<ShaderProgram> _shader );
-    
+
     /*  STATIC Function that compose sourceBlocks with Lights on a ProgramShader */
     static void assembleLights(std::map<std::string, std::vector<std::string>>& _sourceBlocks);
 
@@ -103,5 +103,5 @@ protected:
 private:
 
     static std::string s_mainLightingBlock;
-    
+
 };
