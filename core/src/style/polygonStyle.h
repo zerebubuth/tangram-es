@@ -41,6 +41,8 @@ protected:
         return new Mesh(m_vertexLayout, m_drawMode);
     };
 
+    void onEndBuildTile(Tile& _tile) const override;
+
 public:
 
     PolygonStyle(GLenum _drawMode = GL_TRIANGLES);

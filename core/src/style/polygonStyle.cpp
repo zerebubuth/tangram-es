@@ -4,10 +4,13 @@
 #include "util/builders.h"
 #include "gl/shaderProgram.h"
 #include "tile/tile.h"
+#include "geom.h"
 
 #include <cmath>
 
 namespace Tangram {
+
+#include <chrono>
 
 PolygonStyle::PolygonStyle(std::string _name, GLenum _drawMode) : Style(_name, _drawMode) {
 }
@@ -66,9 +69,20 @@ void PolygonStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pro
     mesh.addVertices(std::move(vertices), std::move(builder.indices));
 }
 
+#define COMPARE 1
+
+#ifdef COMPARE
+static std::mutex s_staticstics;
+static double s_total1 = 0;
+static double s_total2 = 0;
+static double s_maxDuration = 0;
+static uint64_t s_sumVertices = 0;
+#endif
+
 void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, const Properties& _props, VboMesh& _mesh, Tile& _tile) const {
 
     std::vector<PolygonVertex> vertices;
+    std::vector<PolygonVertex> vertices2;
 
     Parameters params = parseRule(_rule);
 
@@ -93,6 +107,7 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
         [&](size_t sizeHint){ vertices.reserve(sizeHint); }
     };
 
+#ifndef COMPARE
     if (extrude.first != 0.0f || extrude.second != 0.0f) {
         float ht = std::isnan(extrude.second) ? ( std::isnan(extrude.first) ? height : extrude.first ) : extrude.second;
         float minHt = std::isnan(extrude.second) ? minHeight : extrude.first;
@@ -102,9 +117,81 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
         Builders::buildPolygon(_polygon, 0.0f, builder);
     }
 
+#else
+    auto start1 = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++) {
+        builder.indices.clear();
+        builder.numVertices = 0;
+        vertices.clear();
+        Builders::buildPolygon(_polygon, height, builder);
+    }
+
+    auto end1 = std::chrono::high_resolution_clock::now();
+
+    double duration1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end1 - start1).count();
+
+    PolygonBuilder builder2 = {
+        [&](const glm::vec3& coord, const glm::vec3& normal, const glm::vec2& uv){
+            vertices2.push_back({ coord, normal, uv, abgr, layer });
+        },
+        [&](size_t sizeHint){ vertices2.reserve(sizeHint); }
+    };
+
+    auto start2 = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10; i++) {
+        builder2.indices.clear();
+        builder2.numVertices = 0;
+        vertices2.clear();
+        Builders::buildPolygonTess(_polygon, height, builder2);
+    }
+
+    auto end2 = std::chrono::high_resolution_clock::now();
+
+    double duration2 = std::chrono::duration_cast<std::chrono::nanoseconds>(end2 - start2).count();
+
+    double allMax = 0;
+
+    {
+        std::lock_guard<std::mutex> lock(s_staticstics);
+        s_total1 += double(duration1 / 1e9);
+        s_total2 += double(duration2 / 1e9);
+        s_sumVertices += vertices.size();
+
+        s_maxDuration = std::max(s_maxDuration, duration1);
+        s_maxDuration = std::max(s_maxDuration, duration2);
+        allMax = s_maxDuration;
+    }
+
+    if (minHeight != height) {
+        Builders::buildPolygonExtrusion(_polygon, minHeight, height, builder);
+    }
+
+    double max = std::max(duration2, duration1);
+
+    if (max > 0) {
+        int d = CLAMP(255.0 * ((duration2 - duration1) / max), -255.0, 255.0) * CLAMP((max / 50000), 0.2, 1.0);
+
+        uint32_t c = 0xff000000 | (d > 0 ? (d << 16) : -d);
+
+        for (auto& v : vertices) {
+            v.abgr = c;
+        }
+    }
+#endif
 
     auto& mesh = static_cast<PolygonStyle::Mesh&>(_mesh);
     mesh.addVertices(std::move(vertices), std::move(builder.indices));
+}
+
+void PolygonStyle::onEndBuildTile(Tile& _tile) const {
+#ifdef COMPARE
+       std::lock_guard<std::mutex> lock(s_staticstics);
+
+       auto vps1 = double(s_sumVertices) / s_total1;
+       auto vps2 = double(s_sumVertices) / s_total2;
+
+       logMsg("%f \t %f \t %f - %f\n", vps1, vps2, (s_total1 / s_total2), s_maxDuration);
+#endif
 }
 
 }
