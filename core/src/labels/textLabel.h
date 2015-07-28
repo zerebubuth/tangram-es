@@ -21,6 +21,8 @@ private:
     
     std::string m_text;
 
+    friend class TextBuffer;
+
     int m_numGlyphs;
 
     // Back-pointer to owning container
@@ -28,6 +30,7 @@ private:
 
     // byte-offset in m_mesh vertices
     size_t m_bufferOffset;
+
 
 protected:
     

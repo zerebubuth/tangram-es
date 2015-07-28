@@ -19,16 +19,6 @@ void TextLabel::updateBBoxes() {
     m_aabb = m_obb.getExtent();
 }
 
-bool TextLabel::rasterize() {
-
-    m_numGlyphs = m_mesh.rasterize(m_text, m_dim, m_bufferOffset);
-
-    if (m_numGlyphs == 0) {
-        return false;
-    }
-    return true;
-}
-
 void TextLabel::pushTransform() {
     if (m_dirty) {
         m_dirty = false;

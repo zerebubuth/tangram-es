@@ -1,10 +1,9 @@
 #pragma once
 
 #include "gl.h"
-#include "glfontstash.h"
+#include "fontstash.h"
 #include "gl/texture.h"
 #include "platform.h"
-#include "textBuffer.h"
 #include "stl_util.hpp"
 #include <memory>
 #include <mutex>
@@ -15,6 +14,8 @@
 namespace Tangram {
 
 class TextBuffer;
+
+typedef unsigned int FontID;
 
 class FontContext {
 
@@ -35,13 +36,13 @@ public:
     /* sets the current font for a size in pixels */
     void setFont(const std::string& _name, int size);
 
-    fsuint getFontID(const std::string& _name);
+    FontID getFontID(const std::string& _name);
 
     /* sets the blur spread when using signed distance field rendering */
     void setSignedDistanceField(float _blurSpread);
 
     void clearState();
-    
+
     /* lock thread access to this font context */
     void lock();
 
@@ -52,10 +53,14 @@ public:
 
     FONScontext* getFontContext() const { return m_fsContext; }
 
-private:
+    bool rasterize(const std::string& _text);
 
-    static void updateAtlas(void* _userPtr, unsigned int _xoff, unsigned int _yoff,
-                            unsigned int _width, unsigned int _height, const unsigned int* _pixels);
+    const std::vector<FONSquad> getQuads() { return m_quadBuffer; }
+
+private:
+    static void renderUpdate(void* _userPtr, int* _rect, const unsigned char* _data);
+    static int renderCreate(void* _userPtr, int _width, int _height);
+    static void pushQuad(void* _userPtr, const FONSquad* _quad);
 
     void initFontContext(int _atlasSize);
 
@@ -65,6 +70,7 @@ private:
     std::mutex m_atlasMutex;
 
     FONScontext* m_fsContext;
+    std::vector<FONSquad> m_quadBuffer;
 
 };
 
