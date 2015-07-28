@@ -38,6 +38,8 @@ public:
 
     virtual void each(std::function<void(Label&)> fn) override;
 
+    virtual void appendLabels(std::vector<Label*>& _labels) override;
+
     void addLabel(const TextLabel& label);
 
 private:

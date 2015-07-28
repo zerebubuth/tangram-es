@@ -23,11 +23,19 @@ public:
             fn(label);
     }
 
+    virtual void appendLabels(std::vector<Label*>& _labels) override {
+        for (auto& label : m_labels) {
+            _labels.push_back(&label);
+        }
+    }
+
+    void addLabel(const SpriteLabel& _label) {
+        m_labels.push_back(_label);
+    }
+
+private:
     std::vector<SpriteLabel> m_labels;
 
-    void addLabel(const SpriteLabel& label) {
-        m_labels.push_back(label);
-    }
 };
 
 class SpriteStyle : public Style {

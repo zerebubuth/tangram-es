@@ -3,7 +3,6 @@
 
 #include "gl/texture.h"
 #include "gl/vboMesh.h"
-
 #include "labels/textLabel.h"
 
 namespace Tangram {
@@ -121,4 +120,11 @@ void TextBuffer::addLabel(const TextLabel& label) {
     m_labels.push_back(label);
 }
 
+void TextBuffer::appendLabels(std::vector<Label*>& _labels) {
+    for (auto& label : m_labels) {
+        _labels.push_back(&label);
+    }
 }
+
+}
+
