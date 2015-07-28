@@ -65,14 +65,12 @@ int TextBuffer::addLabel(const std::string& _text, Label::Transform _transform, 
         m_vertices.push_back({{q.x0, q.y1}, {q.s0, q.t1}});
         m_vertices.push_back({{q.x1, q.y1}, {q.s1, q.t1}});
     }
+
     fontContext->unlock();
 
-    std::unique_ptr<TextLabel> label(new TextLabel(*this, _transform, _text, _type));
-    label->m_bufferOffset = bufferPosition;
-    label->m_dim = glm::vec2(x1 - x0, y1 - y0);
-    label->m_numGlyphs = numGlyphs;
-
-    LabelMesh::addLabel(std::move(label));
+    m_labels.emplace_back(new TextLabel(_text, _transform, _type,
+                                        numGlyphs, glm::vec2(x1 - x0, y1 - y0),
+                                        *this, bufferPosition));
 
     return numGlyphs;
 }
