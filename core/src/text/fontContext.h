@@ -49,9 +49,13 @@ public:
 
     void bindAtlas(GLuint _textureUnit);
 
-    bool rasterize(const std::string& _text, FontID _fontID, float _fontSize, float _sdf);
+    /*
+     * Create quads and glyphs for @_text with given options.
+     *
+     * NB: the returned quads are only valid while <FontContext> is locked!
+     */
+    std::vector<FONSquad>& rasterize(const std::string& _text, FontID _fontID, float _fontSize, float _sdf);
 
-    const std::vector<FONSquad> getQuads() { return m_quadBuffer; }
 
 private:
     static void renderUpdate(void* _userPtr, int* _rect, const unsigned char* _data);

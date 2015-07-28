@@ -80,7 +80,7 @@ FontID FontContext::getFontID(const std::string& _name) {
     }
 }
 
-bool FontContext::rasterize(const std::string& _text, FontID _fontID, float _fontSize, float _sdf) {
+std::vector<FONSquad>& FontContext::rasterize(const std::string& _text, FontID _fontID, float _fontSize, float _sdf) {
 
     m_quadBuffer.clear();
 
@@ -95,10 +95,12 @@ bool FontContext::rasterize(const std::string& _text, FontID _fontID, float _fon
     }
 
     float advance = fonsDrawText(m_fsContext, 0, 0, _text.c_str(), nullptr, 0);
-    if (advance < 0)
-        return false;
+    if (advance < 0) {
+        m_quadBuffer.clear();
+        return m_quadBuffer;
+    }
 
-    return !m_quadBuffer.empty();
+    return m_quadBuffer;
 }
 
 void FontContext::pushQuad(void* _userPtr, const FONSquad* _quad) {

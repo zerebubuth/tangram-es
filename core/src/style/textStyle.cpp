@@ -117,10 +117,6 @@ void TextStyle::onBeginBuildTile(VboMesh& _mesh) const {
 }
 
 void TextStyle::onEndBuildTile(VboMesh& _mesh) const {
-
-    auto& buffer = static_cast<TextBuffer&>(_mesh);
-
-    buffer.addBufferVerticesToMesh();
 }
 
 void TextStyle::onBeginDrawFrame(const std::shared_ptr<View>& _view, const std::shared_ptr<Scene>& _scene) {

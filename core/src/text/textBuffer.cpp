@@ -10,7 +10,7 @@ TextBuffer::TextBuffer(std::shared_ptr<VertexLayout> _vertexLayout)
     : LabelMesh(_vertexLayout, GL_TRIANGLES) {
 
     m_dirtyTransform = false;
-    m_bufferPosition = 0;
+    addVertices({}, {});
 }
 
 void TextBuffer::init(uint32_t _fontID, float _size, float _blurSpread) {
@@ -22,62 +22,57 @@ void TextBuffer::init(uint32_t _fontID, float _size, float _blurSpread) {
 TextBuffer::~TextBuffer() {
 }
 
-int TextBuffer::addLabel(const std::string& _text, Label::Transform _transform, Label::Type _type) {
+bool TextBuffer::addLabel(const std::string& _text, Label::Transform _transform, Label::Type _type) {
 
     auto fontContext = FontContext::GetInstance();
 
     fontContext->lock();
 
-    if (!fontContext->rasterize(_text, m_fontID, m_fontSize, m_fontBlurSpread)) {
-        fontContext->unlock();
-        return 0;
-    }
-
-    auto& quads = fontContext->getQuads();
-
-    size_t bufferPosition = m_vertexLayout->getStride() * m_vertices.size();
-
+    auto& quads = fontContext->rasterize(_text, m_fontID, m_fontSize, m_fontBlurSpread);
     size_t numGlyphs = quads.size();
 
-    m_vertices.reserve(m_vertices.size() + numGlyphs * 6);
+    if (numGlyphs == 0) {
+        fontContext->unlock();
+        return false;
+    }
+
+    auto& verts = vertices[0];
+
+    // byte offset of added vertices
+    size_t bufferPosition = m_vertexLayout->getStride() * verts.size();
+
+    verts.reserve(verts.size() + numGlyphs * 6);
 
     float inf = std::numeric_limits<float>::infinity();
     float x0 = inf, x1 = -inf, y0 = inf, y1 = -inf;
 
     for (auto& q : quads) {
-        x0 = std::min(x0, q.x0);
-        x0 = std::min(x0, q.x1);
+        x0 = std::min(x0, std::min(q.x0, q.x1));
+        x1 = std::max(x1, std::max(q.x0, q.x1));
+        y0 = std::min(y0, std::min(q.y0, q.y1));
+        y1 = std::max(y1, std::max(q.y0, q.y1));
 
-        x1 = std::max(x1, q.x0);
-        x1 = std::max(x1, q.x1);
+        verts.push_back({{q.x0, q.y0}, {q.s0, q.t0}});
+        verts.push_back({{q.x1, q.y1}, {q.s1, q.t1}});
+        verts.push_back({{q.x1, q.y0}, {q.s1, q.t0}});
 
-        y0 = std::min(y0, q.y0);
-        y0 = std::min(y0, q.y1);
-
-        y1 = std::max(y1, q.y0);
-        y1 = std::max(y1, q.y1);
-
-        m_vertices.push_back({{q.x0, q.y0}, {q.s0, q.t0}});
-        m_vertices.push_back({{q.x1, q.y1}, {q.s1, q.t1}});
-        m_vertices.push_back({{q.x1, q.y0}, {q.s1, q.t0}});
-
-        m_vertices.push_back({{q.x0, q.y0}, {q.s0, q.t0}});
-        m_vertices.push_back({{q.x0, q.y1}, {q.s0, q.t1}});
-        m_vertices.push_back({{q.x1, q.y1}, {q.s1, q.t1}});
+        verts.push_back({{q.x0, q.y0}, {q.s0, q.t0}});
+        verts.push_back({{q.x0, q.y1}, {q.s0, q.t1}});
+        verts.push_back({{q.x1, q.y1}, {q.s1, q.t1}});
     }
 
     fontContext->unlock();
 
+    glm::vec2 size((x1 - x0), (y1 - y0));
+
     m_labels.emplace_back(new TextLabel(_text, _transform, _type,
-                                        numGlyphs, glm::vec2(x1 - x0, y1 - y0),
+                                        numGlyphs, size,
                                         *this, bufferPosition));
 
-    return numGlyphs;
-}
+    // TODO: change this in TypeMesh::adVertices()
+    m_nVertices = verts.size();
 
-void TextBuffer::addBufferVerticesToMesh() {
-
-    addVertices(std::move(m_vertices), {});
+    return true;
 }
 
 }
