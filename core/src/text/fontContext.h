@@ -13,8 +13,6 @@
 
 namespace Tangram {
 
-class TextBuffer;
-
 typedef unsigned int FontID;
 
 class FontContext {
