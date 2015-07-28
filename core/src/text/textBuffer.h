@@ -12,6 +12,7 @@
 namespace Tangram {
 
 class FontContext;
+class TextLabel;
 
 /*
  * This class represents a text buffer, each text buffer has several text ids
@@ -35,6 +36,10 @@ public:
     /* get the vertices from the font context and add them as vbo mesh data */
     void addBufferVerticesToMesh();
 
+    virtual void each(std::function<void(Label&)> fn) override;
+
+    void addLabel(const TextLabel& label);
+
 private:
 
     fsuint m_fontID;
@@ -44,6 +49,8 @@ private:
     bool m_dirtyTransform;
     fsuint m_fsBuffer;
     int m_bufferPosition;
+
+    std::vector<TextLabel> m_labels;
 };
 
 }

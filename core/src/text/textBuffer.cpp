@@ -4,6 +4,8 @@
 #include "gl/texture.h"
 #include "gl/vboMesh.h"
 
+#include "labels/textLabel.h"
+
 namespace Tangram {
 
 TextBuffer::TextBuffer(std::shared_ptr<VertexLayout> _vertexLayout)
@@ -108,6 +110,15 @@ void TextBuffer::addBufferVerticesToMesh() {
     m_fsBuffer = 0;
 
     fontContext->unlock();
+}
+
+void TextBuffer::each(std::function<void(Label&)> fn) {
+    for (auto& label : m_labels)
+        fn(label);
+}
+
+void TextBuffer::addLabel(const TextLabel& label) {
+    m_labels.push_back(label);
 }
 
 }

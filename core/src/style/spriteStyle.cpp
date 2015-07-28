@@ -85,16 +85,17 @@ void SpriteStyle::buildPoint(Point& _point, const StyleParamMap&, Properties& _p
 
     size_t bufferOffset = _mesh.numVertices() * m_vertexLayout->getStride();
 
-    auto& mesh = static_cast<LabelMesh&>(_mesh);
+    auto& mesh = static_cast<SpriteMesh&>(_mesh);
 
-    std::unique_ptr<SpriteLabel> label(new SpriteLabel(mesh, t, spriteNode.m_size * spriteScale, bufferOffset));
+    SpriteLabel label(mesh, t, spriteNode.m_size * spriteScale, bufferOffset);
 
-    Builders::buildQuadAtPoint(label->getTransform().state.screenPos + offset,
+    Builders::buildQuadAtPoint(label.getTransform().state.screenPos + offset,
                                spriteNode.m_size * spriteScale,
                                spriteNode.m_uvBL, spriteNode.m_uvTR, builder);
 
     mesh.addVertices(std::move(vertices), std::move(builder.indices));
-    mesh.addLabel(std::move(label));
+
+    mesh.addLabel(label);
 }
 
 void SpriteStyle::onBeginDrawFrame(const std::shared_ptr<View>& _view, const std::shared_ptr<Scene>& _scene) {

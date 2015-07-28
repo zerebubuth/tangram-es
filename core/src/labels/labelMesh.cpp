@@ -9,8 +9,5 @@ LabelMesh::LabelMesh(std::shared_ptr<VertexLayout> _vertexLayout, GLenum _drawMo
 
 LabelMesh::~LabelMesh() {}
 
-void LabelMesh::addLabel(std::unique_ptr<Label> _label) {
-    m_labels.push_back(std::move(_label));
-}
 
 }

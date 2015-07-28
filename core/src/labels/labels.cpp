@@ -57,15 +57,15 @@ void Labels::update(const View& _view, float _dt, const std::vector<std::unique_
             auto labelMesh = dynamic_cast<LabelMesh*>(mesh.get());
             if (!labelMesh) { continue; }
 
-            for (auto& label : labelMesh->getLabels()) {
-                m_needUpdate |= label->update(mvp, screenSize, _dt);
+            labelMesh->each([&](Label& label){
+                m_needUpdate |= label.update(mvp, screenSize, _dt);
 
-                if (label->canOcclude()) {
-                    m_aabbs.push_back(label->getAABB());
-                    m_aabbs.back().m_userData = (void*)label.get();
+                if (label.canOcclude()) {
+                    m_aabbs.push_back(label.getAABB());
+                    m_aabbs.back().m_userData = (void*)&label;
                 }
-                m_labels.push_back(label.get());
-            }
+                m_labels.push_back(&label);
+                });
         }
     }
 
