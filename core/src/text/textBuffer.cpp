@@ -28,19 +28,7 @@ int TextBuffer::addLabel(const std::string& _text, Label::Transform _transform, 
 
     fontContext->lock();
 
-    auto ctx = fontContext->getFontContext();
-
-    fonsSetSize(ctx, m_fontSize);
-    fonsSetFont(ctx, m_fontID);
-
-    if (m_fontBlurSpread > 0){
-        fonsSetBlur(ctx, m_fontBlurSpread);
-        fonsSetBlurType(ctx, FONS_EFFECT_DISTANCE_FIELD);
-    } else {
-        fonsSetBlurType(ctx, FONS_EFFECT_NONE);
-    }
-
-    if (!fontContext->rasterize(_text)) {
+    if (!fontContext->rasterize(_text, m_fontID, m_fontSize, m_fontBlurSpread)) {
         fontContext->unlock();
         return 0;
     }

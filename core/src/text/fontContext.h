@@ -51,9 +51,7 @@ public:
 
     void bindAtlas(GLuint _textureUnit);
 
-    FONScontext* getFontContext() const { return m_fsContext; }
-
-    bool rasterize(const std::string& _text);
+    bool rasterize(const std::string& _text, FontID _fontID, float _fontSize, float _sdf);
 
     const std::vector<FONSquad> getQuads() { return m_quadBuffer; }
 

@@ -80,9 +80,19 @@ FontID FontContext::getFontID(const std::string& _name) {
     }
 }
 
-bool FontContext::rasterize(const std::string& _text) {
+bool FontContext::rasterize(const std::string& _text, FontID _fontID, float _fontSize, float _sdf) {
 
     m_quadBuffer.clear();
+
+    fonsSetSize(m_fsContext, _fontSize);
+    fonsSetFont(m_fsContext, _fontID);
+
+    if (_sdf > 0){
+        fonsSetBlur(m_fsContext, _sdf);
+        fonsSetBlurType(m_fsContext, FONS_EFFECT_DISTANCE_FIELD);
+    } else {
+        fonsSetBlurType(m_fsContext, FONS_EFFECT_NONE);
+    }
 
     float advance = fonsDrawText(m_fsContext, 0, 0, _text.c_str(), nullptr, 0);
     if (advance < 0)
