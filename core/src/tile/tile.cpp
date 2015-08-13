@@ -6,6 +6,7 @@
 #include "style/style.h"
 #include "view/view.h"
 #include "tile/tileID.h"
+#include "tile/tileTask.h"
 #include "gl/vboMesh.h"
 #include "gl/shaderProgram.h"
 
@@ -35,7 +36,7 @@ Tile::~Tile() {
 
 }
 
-void Tile::build(const Scene& _scene, const TileData& _data, const DataSource& _source) {
+void Tile::build(const Scene& _scene, const TileTask& task) {
 
     const auto& layers = _scene.layers();
 
@@ -46,22 +47,29 @@ void Tile::build(const Scene& _scene, const TileData& _data, const DataSource& _
         style->onBeginBuildTile(*this);
     }
 
-    for (const auto& datalayer : layers) {
+    for (auto& it : task.items) {
+        if (!it.rawData) { continue; }
 
-        if (datalayer.source() != _source.name()) { continue; }
+        auto tileData = it.source->parse(*this, *it.rawData);
+        if (!tileData) { continue; }
 
-        for (const auto& collection : _data.layers) {
+        for (const auto& datalayer : layers) {
 
-            if (collection.name != datalayer.collection()) { continue; }
+            if (datalayer.source() != it.source->name()) { continue; }
 
-            for (const auto& feat : collection.features) {
+            for (const auto& collection : tileData->layers) {
 
-                std::vector<DrawRule> rules;
-                datalayer.match(feat, ctx, rules);
+                if (collection.name != datalayer.collection()) { continue; }
 
-                for (const auto& rule : rules) {
-                    auto* style = _scene.findStyle(rule.style);
-                    if (style) { style->buildFeature(*this, feat, rule); }
+                for (const auto& feat : collection.features) {
+
+                    std::vector<DrawRule> rules;
+                    datalayer.match(feat, ctx, rules);
+
+                    for (const auto& rule : rules) {
+                        auto* style = _scene.findStyle(rule.style);
+                        if (style) { style->buildFeature(*this, feat, rule); }
+                    }
                 }
             }
         }

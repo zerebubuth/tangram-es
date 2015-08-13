@@ -20,9 +20,7 @@ class Style;
 class TextBuffer;
 class VboMesh;
 class View;
-struct TileData;
-
-enum class TileState { none, loading, processing, ready, canceled };
+class TileTask;
 
 /* Tile of vector map data
  *
@@ -63,7 +61,7 @@ public:
     /* Draws the geometry associated with the provided <Style> and view-projection matrix */
     void draw(const Style& _style, const View& _view);
 
-    void build(const Scene& _scene, const TileData& _data, const DataSource& _source);
+    void build(const Scene& _scene, const TileTask& task);
     
     /* 
      * Methods to set and get proxy counter
@@ -99,12 +97,8 @@ public:
         return false;
     }
 
-    bool isCanceled() const {
-        return m_state == TileState::canceled;
-    }
-
     bool isReady() const {
-        return m_state == TileState::ready;
+        return !m_task;
     }
 
     /* Method to check whther this tile is in the current set of visible tiles
@@ -126,20 +120,10 @@ public:
         m_priority.store(_priority);
     }
 
-    bool hasState(TileState _state) {
-        return (m_state == _state);
-    }
-
-    TileState getState() {
-        return m_state;
-    }
-
-    void setState(TileState _state) {
-        m_state = _state;
-    }
-
     /* Get the sum in bytes of all <VboMesh>es + TODO labels?  */
     size_t getMemoryUsage() const;
+
+    std::shared_ptr<TileTask>& task() { return m_task; }
 
 private:
 
@@ -151,12 +135,6 @@ private:
     int m_proxyCounter = 0;
 
     uint8_t m_proxies = 0;
-
-    /* The loading state of the tile.
-     * NB: This may be moved to TileTask when multiple DataSources should
-     *     contribute to a single tile.
-     */
-    TileState m_state = TileState::none;
 
     bool m_visible;
 
@@ -175,6 +153,7 @@ private:
 
     std::unordered_map<std::string, std::unique_ptr<VboMesh>> m_geometry; // Map of <Style>s and their associated <VboMesh>es
 
+    std::shared_ptr<TileTask> m_task;
 };
 
 }

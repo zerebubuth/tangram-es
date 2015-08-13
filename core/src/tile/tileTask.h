@@ -1,30 +1,43 @@
 #pragma once
 
-#include "tile.h"
-#include "data/tileData.h"
-
+#include <vector>
 #include <memory>
+#include <map>
 
 namespace Tangram {
 
-class TileManager;
 class DataSource;
+class Tile;
+class TileManager;
 
-class TileTask {
+class TileTask : public std::enable_shared_from_this<TileTask> {
 
 public:
+    enum class State { none, loading, processing, ready, canceled };
+
+    struct Item {
+        DataSource* source;
+        std::shared_ptr<std::vector<char>> rawData;
+        State state;
+    };
+
     std::shared_ptr<Tile> tile;
-    /*const*/ DataSource* source;
+    TileManager &tileManager;
 
-    // Raw tile data that will be processed by DataSource.
-    std::shared_ptr<std::vector<char>> rawTileData;
+    std::vector<Item> items;
 
-    TileTask(std::shared_ptr<Tile> _tile, DataSource* _source) :
-        tile(_tile),
-        source(_source) {
-    }
+    TileTask(TileManager& _tileManager, std::shared_ptr<Tile> _tile);
 
     TileTask& operator=(const TileTask& _other) = delete;
+
+    void cancel();
+
+    void load();
+
+    void process(DataSource* source, std::shared_ptr<std::vector<char>> _rawData);
+
+    bool awaitsLoading();
+
 };
 
 typedef std::function<void(std::shared_ptr<TileTask>&&)> TileTaskCb;

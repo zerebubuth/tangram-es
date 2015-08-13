@@ -46,14 +46,15 @@ void DataSource::constructURL(const TileID& _tileCoord, std::string& _url) const
     }
 }
 
-bool DataSource::getTileData(std::shared_ptr<TileTask>& _task) {
+bool DataSource::getTileData(TileTask& _task) {
     if (m_cacheMaxUsage > 0) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        auto it = m_cacheMap.find(_task->tile->getID());
+        auto it = m_cacheMap.find(_task.tile->getID());
         if (it != m_cacheMap.end()) {
             // Move cached entry to start of list
             m_cacheList.splice(m_cacheList.begin(), m_cacheList, it->second);
-            _task->rawTileData = m_cacheList.front().second;
+
+            _task.process(this, m_cacheList.front().second);
 
             return true;
         }
@@ -62,14 +63,13 @@ bool DataSource::getTileData(std::shared_ptr<TileTask>& _task) {
     return false;
 }
 
-void DataSource::onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<TileTask>& _task, TileTaskCb _cb) {
+void DataSource::onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<TileTask>& _task) {
     TileID tileID = _task->tile->getID();
 
     auto rawDataRef = std::make_shared<std::vector<char>>();
     std::swap(*rawDataRef, _rawData);
-    _task->rawTileData = rawDataRef;
 
-    _cb(std::move(_task));
+    _task->process(this, rawDataRef);
 
     if (m_cacheMaxUsage > 0) {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -93,7 +93,7 @@ void DataSource::onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<Tile
 }
 
 
-bool DataSource::loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb) {
+bool DataSource::loadTileData(std::shared_ptr<TileTask> _task) {
 
     std::string url(constructURL(_task->tile->getID()));
 
@@ -101,7 +101,7 @@ bool DataSource::loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb)
     return startUrlRequest(url, std::bind(&DataSource::onTileLoaded,
                                           this,
                                           std::placeholders::_1,
-                                          std::move(_task), _cb));
+                                          std::move(_task)));
 
 }
 

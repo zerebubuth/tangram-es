@@ -50,7 +50,7 @@ void TileWorker::run() {
 
             // Remove all canceled tasks
             auto removes = std::remove_if(m_queue.begin(), m_queue.end(),
-                [](const auto& a) { return a->tile->isCanceled(); });
+                [](const auto& a) { return !a->tile->task(); });
 
             m_queue.erase(removes, m_queue.end());
 
@@ -71,15 +71,7 @@ void TileWorker::run() {
             m_queue.erase(it);
         }
 
-        if (task->tile->isCanceled()) {
-            continue;
-        }
-
-        auto tileData = task->source->parse(*task->tile, *task->rawTileData);
-
-        if (tileData) {
-            task->tile->build(*m_tileManager.getScene(), *tileData, *task->source);
-        }
+        task->tile->build(*m_tileManager.getScene(), *task);
 
         m_tileManager.tileProcessed(std::move(task));
         requestRender();

@@ -13,6 +13,7 @@
 #include <future>
 #include <set>
 #include <mutex>
+#include <atomic>
 
 namespace Tangram {
 
@@ -57,7 +58,9 @@ public:
     /* For TileWorker: Pass TileTask with processed data back
      * to TileManager.
      */
-    void tileProcessed(std::shared_ptr<TileTask>&& task);
+    void tileProcessed(std::shared_ptr<TileTask> task);
+
+    void tileLoaded(std::shared_ptr<TileTask> task);
 
     /* Returns the set of currently visible tiles */
     const auto& getVisibleTiles() { return m_tileSet; }
@@ -65,6 +68,15 @@ public:
     auto& dataSources() { return m_dataSources; }
 
     bool hasTileSetChanged() { return m_tileSetChanged; }
+
+    void removeLoadPending() { m_loadPending--; }
+    bool addLoadPending() {
+        if (m_loadPending < MAX_DOWNLOADS) {
+            m_loadPending++; return true;
+        }
+        return false;
+    }
+
 
 private:
 
@@ -77,7 +89,7 @@ private:
     std::vector<std::shared_ptr<TileTask>> m_readyTiles;
 
     std::mutex m_tileStateMutex;
-    int32_t m_loadPending;
+    std::atomic<int32_t> m_loadPending;
 
     // TODO: Might get away with using a vector of pairs here (and for searching
     // using std:search (binary search))
@@ -123,8 +135,6 @@ private:
      *  Once a visible tile finishes loading and is added to m_tileSet, all its proxy(ies) Tiles are removed
      */
     void clearProxyTiles(Tile& _tile, std::vector<TileID>& _removes);
-
-    bool setTileState(Tile& tile, TileState state);
 
     void enqueueLoadTask(const TileID& tileID, const glm::dvec2& viewCenter);
 };

@@ -2,10 +2,13 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <vector>
 #include <mutex>
 #include <list>
+
+#include "tile/tile.h"
 #include "tile/tileTask.h"
 
 namespace Tangram {
@@ -34,10 +37,10 @@ public:
      * the I/O task is complete, the tile data is added to a queue in @_tileManager for 
      * further processing before it is renderable. 
      */
-    virtual bool loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb);
+    virtual bool loadTileData(std::shared_ptr<TileTask> _task);
 
     /* Lookup TileData in cache and */
-    virtual bool getTileData(std::shared_ptr<TileTask>& _task);
+    virtual bool getTileData(TileTask& _task);
 
     /* Stops any running I/O tasks pertaining to @_tile */
     virtual void cancelLoadingTile(const TileID& _tile);
@@ -55,7 +58,7 @@ public:
 
 protected:
 
-    void onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<TileTask>& _task, TileTaskCb _cb);
+    void onTileLoaded(std::vector<char>&& _rawData, std::shared_ptr<TileTask>& _task);
 
     /* Constructs the URL of a tile using <m_urlTemplate> */
     virtual void constructURL(const TileID& _tileCoord, std::string& _url) const;
