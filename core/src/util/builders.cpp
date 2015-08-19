@@ -7,28 +7,49 @@
 #include "tesselator.h"
 #include <memory>
 
-void* alloc(void* _userData, unsigned int _size) {
+void* heapAlloc(void* _userData, unsigned int _size) {
     return malloc(_size);
 }
 
-void* realloc(void* _userData, void* _ptr, unsigned int _size) {
+void* heapRealloc(void* _userData, void* _ptr, unsigned int _size) {
     return realloc(_ptr, _size);
 }
 
-void free(void* _userData, void* _ptr) {
+void heapFree(void* _userData, void* _ptr) {
     free(_ptr);
 }
 
-namespace Tangram {
+struct MemPool {
+    unsigned char* buf;
+    unsigned int cap;
+    unsigned int size;
+    bool outOfMemory = false;
+};
 
-static TESSalloc allocator = {&alloc, &realloc, &free, nullptr,
-                              64, // meshEdgeBucketSize
-                              64, // meshVertexBucketSize
-                              16,  // meshFaceBucketSize
-                              64, // dictNodeBucketSize
-                              16,  // regionBucketSize
-                              64  // extraVertices
-                             };
+void* poolAlloc(void* userData, unsigned int size) {
+     struct MemPool* pool = (struct MemPool*)userData;
+     size = (size+0x7) & ~0x7;
+     if (pool->size + size < pool->cap) {
+         unsigned char* ptr = pool->buf + pool->size;
+         pool->size += size;
+         return ptr;
+     }
+     logMsg("out of mem: %d < %d!\n", pool->size + size, pool->cap);
+     pool->outOfMemory = true;
+     return 0;
+}
+
+void poolFree(void* userData, void* ptr) {
+    // empty
+}
+
+void* poolRealloc(void* userData, void* ptr, unsigned int _size) {
+    // empty
+    logMsg("pool realloc\n");
+    return 0;
+}
+
+namespace Tangram {
 
 CapTypes CapTypeFromString(const std::string& str) {
     if (str == "square") { return CapTypes::square; }
@@ -42,9 +63,9 @@ JoinTypes JoinTypeFromString(const std::string& str) {
     return JoinTypes::miter;
 }
 
-void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuilder& _ctx) {
+bool tesselate(MemPool& pool, TESStesselator* tesselator, const Polygon& _polygon,
+               float _height, PolygonBuilder& _ctx) {
 
-    TESStesselator* tesselator = tessNewTess(&allocator);
     isect2d::AABB bbox;
 
     if (_ctx.useTexCoords && _polygon.size() > 0 && _polygon[0].size() > 0) {
@@ -60,12 +81,17 @@ void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuild
             }
         }
         tessAddContour(tesselator, 3, line.data(), sizeof(Point), (int)line.size());
+        if (pool.outOfMemory) {
+            //logMsg("addContour out of mem: %d < %d!\n", pool.size, pool.cap);
+            return false;
+        }
     }
 
     // call the tesselator
     glm::vec3 normal(0.0, 0.0, 1.0);
 
-    if ( tessTesselate(tesselator, TessWindingRule::TESS_WINDING_NONZERO, TessElementType::TESS_POLYGONS, 3, 3, &normal[0]) ) {
+    if (tessTesselate(tesselator, TessWindingRule::TESS_WINDING_NONZERO,
+                      TessElementType::TESS_POLYGONS, 3, 3, &normal[0])) {
 
         const int numElements = tessGetElementCount(tesselator);
         const TESSindex* tessElements = tessGetElements(tesselator);
@@ -96,13 +122,62 @@ void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuild
         }
     } else {
         logMsg("Tesselator cannot tesselate!!\n");
+        return false;
     }
 
-    tessDeleteTess(tesselator);
+    return true;
+}
+
+void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuilder& _ctx) {
+
+    struct MemPool pool;
+
+    TESSalloc allocator = {
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr,
+        64, // meshEdgeBucketSize
+        64, // meshVertexBucketSize
+        64, // meshFaceBucketSize
+        64, // dictNodeBucketSize
+        64, // regionBucketSize
+        64  // extraVertices
+    };
+
+    {
+        // Try with 128k stack memory first
+        unsigned char mem[128*1024];
+        pool.size = 0;
+        pool.cap = sizeof(mem);
+        pool.buf = mem;
+
+        allocator.memalloc = &poolAlloc;
+        allocator.memrealloc = &poolRealloc;
+        allocator.memfree = &poolFree;
+        allocator.userData = (void*)&pool;
+
+        TESStesselator* tesselator = tessNewTess(&allocator);
+        tesselate(pool, tesselator, _polygon, _height, _ctx);
+        tessDeleteTess(tesselator);
+    }
+
+    if (pool.outOfMemory) {
+        // Fallback to heap allocations
+        pool.outOfMemory = false;
+        allocator.memalloc = &heapAlloc;
+        allocator.memrealloc = &heapRealloc;
+        allocator.memfree = &heapFree;
+        allocator.userData = nullptr;
+
+        TESStesselator* tesselator = tessNewTess(&allocator);
+        tesselate(pool, tesselator, _polygon, _height, _ctx);
+        tessDeleteTess(tesselator);
+    }
 }
 
 void Builders::buildPolygonExtrusion(const Polygon& _polygon, float _minHeight, float _maxHeight, PolygonBuilder& _ctx) {
-    
+
     int vertexDataOffset = (int)_ctx.numVertices;
 
     glm::vec3 upVector(0.0f, 0.0f, 1.0f);
