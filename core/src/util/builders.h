@@ -97,6 +97,7 @@ public:
      * @_ctx output vectors, see <PolygonBuilder>
      */
     static void buildPolygon(const Polygon& _polygon, float _height, PolygonBuilder& _ctx);
+    static void buildPolygonTess(const Polygon& _polygon, float _height, PolygonBuilder& _ctx);
 
     /* Build extruded 'walls' from a polygon
      * @_polygon input coordinates describing the polygon
