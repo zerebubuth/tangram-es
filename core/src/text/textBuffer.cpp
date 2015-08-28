@@ -22,7 +22,7 @@ bool TextBuffer::addLabel(const std::string& _text, Label::Transform _transform,
 
     fontContext->lock();
 
-    auto fontID = fontContext->getFontID(_params.fontName);
+    auto fontID = fontContext->getFontID(_params.fontKey);
 
     if(fontID < 0) {
         fontContext->unlock();
