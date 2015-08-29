@@ -24,7 +24,8 @@ class VTMSource : public DataSource {
                         const std::vector<TagId>& tags,
                         const std::vector<std::string>& keys,
                         const std::vector<std::string>& vals,
-                        TileData& tileData, const Tile& _tile) const;
+                        TileData& tileData, const Tile& _tile,
+                        std::vector<Properties::Item>& tmpProperties) const;
 
     void readTags(protobuf::message it, std::vector<TagId>& tags) const;
 

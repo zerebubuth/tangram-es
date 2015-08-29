@@ -80,7 +80,7 @@ void VboMesh::subDataUpload() {
     long vertexBytes = m_nVertices * m_vertexLayout->getStride();
 
     // when all vertices are modified, it's better to update the entire mesh
-    if (vertexBytes - m_dirtySize < m_vertexLayout->getStride()) {
+    if (true || vertexBytes - m_dirtySize < m_vertexLayout->getStride()) {
 
         // invalidate the data store on the driver
         glBufferData(GL_ARRAY_BUFFER, vertexBytes, NULL, m_hint);

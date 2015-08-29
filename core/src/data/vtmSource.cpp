@@ -126,7 +126,12 @@ static std::vector<Polygon> parsePolys(protobuf::message& it,
         auto numPts = indices[idx];
         if (numPts == 0) break;
 
-        polys.push_back(parseLines(it, indices, idx, lastX, lastY));
+        auto rings = parseLines(it, indices, idx, lastX, lastY);
+        for (auto& ring : rings) {
+            ring.push_back(ring[0]);
+        }
+
+        polys.push_back(std::move(rings));
     }
     return polys;
 }
@@ -176,7 +181,9 @@ static Feature* addFeature(TileData& tileData, const std::string& layerName) {
 bool VTMSource::extractFeature(
     protobuf::message it, GeometryType geomType, const std::vector<TagId>& tags,
     const std::vector<std::string>& keys, const std::vector<std::string>& vals,
-    TileData& tileData, const Tile& _tile) const {
+    TileData& tileData, const Tile& _tile,
+    std::vector<Properties::Item>& tmpProperties) const {
+
     uint32_t numIndices = 1;
     uint32_t numTags = 1;
     std::vector<uint32_t> indices;
@@ -190,6 +197,8 @@ bool VTMSource::extractFeature(
                 180 / M_PI;
     float heightScale = cos(lat * (M_PI / 180)) * EARTH_CIRCUMFERENCE /
       ((1 << _tile.getID().z) * 2);
+
+    tmpProperties.clear();
 
     while (it.next()) {
         if (!take) {
@@ -225,9 +234,12 @@ bool VTMSource::extractFeature(
                         if (v == "motorway" || v == "motorway_link" ||
                             v == "trunk" || v == "trunk_link" ||
                             v == "primary" || v == "primary_link") {
-                            feature->props.add("kind", "highway");
+                            //feature->props.add("kind", "highway");
+                            tmpProperties.emplace_back("kind", "highway");
+
                         } else {
-                            feature->props.add("kind", "minor_road");
+                            //feature->props.add("kind", "minor_road");
+                            tmpProperties.emplace_back("kind", "minor_road");
                         }
 
                         break;
@@ -239,13 +251,15 @@ bool VTMSource::extractFeature(
                             feature = addFeature(tileData, "buildings");
                         }
 
-                        feature->props.add("kind", v);
+                        //feature->props.add("kind", v);
+                        tmpProperties.emplace_back("kind", v);
                         break;
                     }
                     if (k == "landuse" || k == "natural" || k == "leisure" || k == "amenity") {
                         feature = addFeature(tileData, "landuse");
 
-                        feature->props.add("kind", v);
+                        //feature->props.add("kind", v);
+                        tmpProperties.emplace_back("kind", v);
                         break;
                     }
                 }
@@ -257,11 +271,17 @@ bool VTMSource::extractFeature(
 
                         if (key == "height" || key == "min_height") {
                             float numVal = atoi(val.c_str());
-                            numVal *= _tile.getInverseScale();
+                            //numVal *= _tile.getInverseScale();
                             numVal /= 100.0;
-                            feature->props.add(key, numVal);
+                            tmpProperties.emplace_back(key, numVal);
+
+                            //feature->props.add(key, numVal);
+                            //tmpProperties.emplace_back("kind", "minor_road");
+
                         } else {
-                            feature->props.add(key, val);
+                            //feature->props.add(key, val);
+                            tmpProperties.emplace_back(key, val);
+
                         }
                     }
                 } else {
@@ -315,6 +335,9 @@ bool VTMSource::extractFeature(
                 it.skip();
         }
     }
+    if (take) {
+        feature->props = std::move(tmpProperties);
+    }
 
     return take;
 }
@@ -343,6 +366,8 @@ std::shared_ptr<TileData> VTMSource::parse(const Tile& _tile, std::vector<char>&
     uint32_t numVals = 0;
     uint32_t numTags = 0;
     GeometryType geomType;
+
+    std::vector<Properties::Item> tmpProperties;
 
     while (item.next()) {
         switch (item.tag) {
@@ -395,18 +420,18 @@ std::shared_ptr<TileData> VTMSource::parse(const Tile& _tile, std::vector<char>&
                 if (item.tag == ELEM_MESH) geomType = triangles;
 
                 extractFeature(item.getMessage(), geomType, tags, keys, vals,
-                               *tileData, _tile);
+                               *tileData, _tile, tmpProperties);
                 break;
             default:
                 item.skip();
         }
     }
 
-    // if (!s3db) {
-    //     auto feature = addFeature(*tileData, "earth");
-    //     feature->polygons.push_back(
-    //         {{{-1, -1, 0}, {1, -1, 0}, {1, 1, 0}, {-1, 1, 0}}});
-    // }
+    if (!s3db) {
+        auto feature = addFeature(*tileData, "earth");
+        feature->polygons.push_back(
+            {{{-1, -1, 0}, {1, -1, 0}, {1, 1, 0}, {-1, 1, 0}, {-1, -1, 0}}});
+    }
 
     return tileData;
 }
