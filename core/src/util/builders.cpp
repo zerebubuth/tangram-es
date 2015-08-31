@@ -117,14 +117,27 @@ void Builders::buildPolygonTess(const Polygon& _polygon, float _height, PolygonB
 
     tessDeleteTess(tesselator);
 }
+#ifdef PLATFORM_LINUX
+//#define USE_THREADLOCAL 1
+#endif
+
+#ifdef USE_THREADLOCAL
+thread_local mapbox::Earcut<float, uint16_t> earcut;
+#endif
 
 void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuilder& _ctx) {
 
+#ifndef USE_THREADLOCAL
     mapbox::Earcut<float, uint16_t> earcut;
+#endif
 
     earcut(_polygon);
 
+#ifdef USE_THREADLOCAL
+    _ctx.indices = earcut.indices;
+#else
     _ctx.indices = std::move(earcut.indices);
+#endif
 
     isect2d::AABB bbox;
 
