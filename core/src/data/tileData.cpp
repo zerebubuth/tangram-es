@@ -22,12 +22,16 @@ Properties& Properties::operator=(Properties&& _other) {
 const Value& Properties::get(const std::string& key) const {
     const static Value NOT_FOUND(none_type{});
 
+    uint32_t prefix = Key::prefixCode(key);
+
     const auto it = std::lower_bound(props.begin(), props.end(), key,
-                                     [](const auto& item, const auto& key) {
-                                         return item.key < key;
+                                     [&](const auto& item, const auto& key) {
+                                         return item.key.prefix != prefix
+                                                    ? item.key.prefix < prefix
+                                                    : item.key.key < key;
                                      });
 
-    if (it == props.end() || it->key != key) {
+    if (it == props.end() || it->key.key != key) {
         return NOT_FOUND;
     }
     return it->value;

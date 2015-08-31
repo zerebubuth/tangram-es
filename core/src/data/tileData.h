@@ -67,12 +67,41 @@ typedef std::vector<Point> Line;
 typedef std::vector<Line> Polygon;
 
 struct Properties {
+    struct Key {
+        static int32_t prefixCode(const std::string& key) {
+            size_t l = key.length();
+            if (l > 4) l = 4;
+            int offset = 24;
+            uint64_t p = 0;
+            for (size_t i = 0; i < l; i++) {
+                p |= key[i] << offset;
+                offset -= 8;
+            }
+            return p;
+        }
+
+        Key(std::string key) : prefix(prefixCode(key)), key(std::move(key)) {}
+
+        Key(const Key& Key) = default;
+        Key(Key&& Key) = default;
+        Key &operator=(const Key &) = delete;
+        Key &operator=(Key &&) = default;
+        uint32_t prefix;
+        std::string key;
+
+        bool operator<(const Key& _rhs) const {
+            return prefix != _rhs.prefix ? prefix < _rhs.prefix : key < _rhs.key;
+        }
+        bool operator<(const std::string& _rhs) const {
+            return key < _rhs;
+        }
+    };
 
     struct Item {
         Item(std::string _key, Value _value) :
             key(std::move(_key)), value(std::move(_value)) {}
 
-        std::string key;
+        Key key;
         Value value;
         bool operator<(const Item& _rhs) const { return key < _rhs.key; }
     };
