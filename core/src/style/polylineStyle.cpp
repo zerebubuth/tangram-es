@@ -60,7 +60,9 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
         abgr = abgr << (_tile.getID().z % 6);
     }
 
-    GLfloat layer = _props.getNumeric("sort_key") + params.order;
+    // TODO this should be evaluated in style
+    const static std::string sort_key("sort_key");
+    GLfloat layer = _props.getNumeric(sort_key) + params.order;
     float halfWidth = params.width * .5f;
 
     PolyLineBuilder builder {
