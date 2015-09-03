@@ -3,7 +3,6 @@
 #include "gl.h"
 
 #include <vector>
-#include <deque>
 #include <memory>
 #include <string>
 
@@ -91,11 +90,8 @@ protected:
 
 private:
     struct TextureSubData {
-        std::vector<GLuint> m_data;
-        unsigned int m_xoff;
-        unsigned int m_yoff;
-        unsigned int m_width;
-        unsigned int m_height;
+        size_t ymin;
+        size_t ymax;
     };
 
     size_t bytesPerPixel();
@@ -103,7 +99,7 @@ private:
     bool m_generateMipmaps;
 
     // used to queue the subdata updates, each call of setSubData would be treated in the order that they arrived
-    std::deque<TextureSubData> m_subData;
+    std::vector<TextureSubData> m_subData;
 };
 
 }

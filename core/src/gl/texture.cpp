@@ -83,10 +83,25 @@ void Texture::setSubData(const GLuint* _subData, unsigned int _xoff, unsigned in
         std::memcpy(&m_data[dpos / divisor], &_subData[spos / divisor], _width * bpp);
     }
 
-    m_subData.push_back({{_subData, _subData + (_width * _height) / divisor},
-                        _xoff, _yoff, _width, _height});
-
     m_dirty = true;
+
+    for (TextureSubData& subData : m_subData) {
+        size_t ymax = _yoff + _height;
+
+        if (_yoff <= subData.ymin) {
+            if (ymax < subData.ymin) { continue; }
+
+            subData.ymin = _yoff;
+            subData.ymax = std::max(ymax, subData.ymax);
+            return;
+
+        } else if (_yoff <= subData.ymax) {
+            subData.ymax = std::max(ymax, subData.ymax);
+            return;
+        }
+    }
+
+    m_subData.push_back({_yoff, _yoff + _height});
 }
 
 void Texture::bind(GLuint _unit) {
@@ -157,19 +172,19 @@ void Texture::update(GLuint _textureUnit) {
         }
 
         m_shouldResize = false;
-
         m_subData.clear();
 
     } else {
         // process queued sub data updates
-        while (m_subData.size() > 0) {
-            TextureSubData& subData = m_subData.front();
+        for (const TextureSubData& subData : m_subData) {
+            size_t divisor = sizeof(GLuint) / bytesPerPixel();
+            size_t dpos = (subData.ymin * m_width) / divisor;
 
-            glTexSubImage2D(m_target, 0, subData.m_xoff, subData.m_yoff, subData.m_width, subData.m_height,
-                            m_options.m_format, GL_UNSIGNED_BYTE, subData.m_data.data());
-
-            m_subData.pop_front();
+            glTexSubImage2D(m_target, 0, 0, subData.ymin,
+                            m_width, subData.ymax - subData.ymin,
+                            m_options.m_format, GL_UNSIGNED_BYTE, data + dpos);
         }
+        m_subData.clear();
     }
 
     m_dirty = false;
