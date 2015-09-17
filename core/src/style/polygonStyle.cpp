@@ -67,7 +67,14 @@ void PolygonStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pro
     mesh.addVertices(std::move(vertices), std::move(builder.indices));
 }
 
+static double groundResolution(double latitude, double scale) {
+    return cos(latitude * (PI / 180)) * (R_EARTH * PI) / scale;
+}
+
 void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, const Properties& _props, VboMesh& _mesh, Tile& _tile) const {
+
+    const static std::string key_height("height");
+    const static std::string key_min_height("min_height");
 
     std::vector<PolygonVertex> vertices;
 
@@ -81,14 +88,6 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
         abgr = abgr << (_tile.getID().z % 6);
     }
 
-    const static std::string key_height("height");
-    const static std::string key_min_height("min_height");
-
-    float meterScale = _tile.getScale() * MercatorProjection::METERS_AT_EQUATOR_SCALE_FACTOR;
-
-    float height = _props.getNumeric(key_height) / meterScale;
-    float minHeight = _props.getNumeric(key_min_height) / meterScale;
-
     PolygonBuilder builder = {
         [&](const glm::vec3& coord, const glm::vec3& normal, const glm::vec2& uv){
             vertices.push_back({ coord, normal, uv, abgr, layer });
@@ -97,8 +96,21 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
     };
 
     auto& mesh = static_cast<PolygonStyle::Mesh&>(_mesh);
+    float height = 0.0f;
 
     if (extrude[0] != 0.0f || extrude[1] != 0.0f) {
+
+        glm::dvec2 tileCenter = _tile.getProjection()->MetersToLonLat(_tile.getOrigin());
+
+        // tileWidthInMeter at given latitude
+        double meterScale = groundResolution(tileCenter.y, 1.0 / _tile.getScale());
+
+        // tileWidthInMeter at equator
+        // float meterScale = _tile.getScale() * MercatorProjection::METERS_AT_EQUATOR_SCALE_FACTOR;
+
+        height =  _props.getNumeric(key_height) / meterScale;
+        float minHeight = _props.getNumeric(key_min_height) / meterScale;
+
         height = std::isnan(extrude[1])
             ? ( std::isnan(extrude[0]) ? height : extrude[0] )
             : extrude[1];
@@ -110,9 +122,6 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
 
         // TODO add builder.clear() ?;
         builder.numVertices = 0;
-
-    } else {
-        height = 0.0f;
     }
 
     Builders::buildPolygon(_polygon, height, builder);
