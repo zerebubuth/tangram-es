@@ -89,8 +89,19 @@ void VboMesh::subDataUpload() {
         // for the frame to finish using the vbo but "directly" send command to upload the data
         glBufferData(GL_ARRAY_BUFFER, vertexBytes, m_glVertexData, m_hint);
     } else {
+
+        // http://avitzur.hax.com/2007/05/glbuffersubdata.html
+        GLubyte* dest = static_cast<GLubyte*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+
+        std::memcpy(dest + m_dirtyOffset,
+                    m_glVertexData + m_dirtyOffset,
+                    m_dirtySize);
+
+        GLboolean success = glUnmapBuffer(GL_ARRAY_BUFFER);
+
         // perform simple sub data upload for part of the buffer
-        glBufferSubData(GL_ARRAY_BUFFER, m_dirtyOffset, m_dirtySize, m_glVertexData + m_dirtyOffset);
+        //glBufferSubData(GL_ARRAY_BUFFER, 0, vertexBytes, m_glVertexData);
+        //glBufferSubData(GL_ARRAY_BUFFER, m_dirtyOffset, m_dirtySize, m_glVertexData + m_dirtyOffset);
     }
 
     m_dirtyOffset = 0;

@@ -63,8 +63,8 @@ public:
             return;
         }
 
-        size_t start = _vertexRange.start * tSize + _attribOffset;
-        size_t end = start + _vertexRange.length * tSize;
+        const size_t start = _vertexRange.start * tSize + _attribOffset;
+        const size_t end = start + _vertexRange.length * tSize;
 
         // update the vertices attributes
         for (size_t offset = start; offset < end; offset += tSize) {
