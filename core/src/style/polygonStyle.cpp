@@ -4,6 +4,7 @@
 #include "util/builders.h"
 #include "gl/shaderProgram.h"
 #include "tile/tile.h"
+#include "util/mapProjection.h"
 
 #include <cmath>
 
@@ -83,8 +84,10 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
     const static std::string key_height("height");
     const static std::string key_min_height("min_height");
 
-    float height = _props.getNumeric(key_height) / _tile.getScale();
-    float minHeight = _props.getNumeric(key_min_height) / _tile.getScale();
+    float meterScale = _tile.getScale() * R_EARTH * PI;
+
+    float height = _props.getNumeric(key_height) / meterScale;
+    float minHeight = _props.getNumeric(key_min_height) / meterScale;
 
     PolygonBuilder builder = {
         [&](const glm::vec3& coord, const glm::vec3& normal, const glm::vec2& uv){

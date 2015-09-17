@@ -17,12 +17,7 @@ protected:
     /* m_type: type of map projection: example: mercator*/
     ProjectionType m_type;
 public:
-    constexpr static double INV_360 = 1.0/360.0;
-    constexpr static double INV_180 = 1.0/180.0;
-    constexpr static double HALF_CIRCUMFERENCE = PI * R_EARTH;
-    /*
-     * 256 is default tile size
-     */
+
     MapProjection(ProjectionType _type) : m_type(_type) {};
 
     /*
@@ -128,23 +123,24 @@ public:
      */
     virtual ProjectionType GetMapProjectionType() const {return m_type;}
 
+    virtual double HalfCircumference() const = 0;
+
     virtual ~MapProjection() {}
 };
 
 class MercatorProjection : public MapProjection {
     /*
-     * Following define the boundry covered by this mercator projection
+     * Following define the boundary covered by this mercator projection
      */
-    int m_TileSize;
-    double m_Res;
+    constexpr static double HALF_CIRCUMFERENCE = 1.0;
+    constexpr static double CIRCUMFERENCE = 2.0;
 
 public:
     /*
      * Constructor for MercatorProjection
      * _type: type of map projection, example ProjectionType::Mercator
-     * _tileSize: size of the map tile, default is 256
      */
-    MercatorProjection(int  _tileSize=256);
+    MercatorProjection();
 
     virtual glm::dvec2 LonLatToMeters(const glm::dvec2 _lonLat) const override;
     virtual glm::dvec2 MetersToLonLat(const glm::dvec2 _meters) const override;
@@ -157,6 +153,8 @@ public:
     virtual BoundingBox TileLonLatBounds(const TileID _tileCoord) const override;
     virtual glm::dvec2 TileCenter(const TileID _tileCoord) const override;
     virtual ~MercatorProjection() {}
+    virtual double HalfCircumference() const override { return HALF_CIRCUMFERENCE; };
+
 };
 
 }

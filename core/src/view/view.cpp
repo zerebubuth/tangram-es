@@ -181,7 +181,7 @@ float View::screenToGroundPlane(float& _screenX, float& _screenY) {
     // Determine the maximum distance from the view position at which tiles can be drawn; If the projected point
     // is farther than this maximum or if the point is above the horizon (t < 0) then we set the distance of the
     // point to always be this maximum distance.
-    float maxTileDistance = invLodFunc(MAX_LOD + 1) * 2 * MapProjection::HALF_CIRCUMFERENCE * pow(2, -m_zoom);
+    float maxTileDistance = invLodFunc(MAX_LOD + 1) * 2 * m_projection->HalfCircumference() * pow(2, -m_zoom);
     float rayDistanceXY = sqrtf(ray_world.x * ray_world.x + ray_world.y * ray_world.y);
     if (rayDistanceXY > maxTileDistance || t < 0) {
         ray_world *= maxTileDistance / rayDistanceXY;
@@ -196,7 +196,7 @@ float View::screenToGroundPlane(float& _screenX, float& _screenY) {
 void View::updateMatrices() {
 
     // find dimensions of tiles in world space at new zoom level
-    float worldTileSize = 2 * MapProjection::HALF_CIRCUMFERENCE * pow(2, -m_zoom);
+    float worldTileSize = 2 * m_projection->HalfCircumference() * pow(2, -m_zoom);
 
     // viewport height in world space is such that each tile is [m_pixelsPerTile] px square in screen space
     float screenTileSize = m_pixelsPerTile * m_pixelScale;
@@ -343,7 +343,7 @@ void View::updateTiles() {
     }
 
     // Transformation from world space to tile space
-    double hc = MapProjection::HALF_CIRCUMFERENCE;
+    double hc = m_projection->HalfCircumference();
     double invTileSize = double(1 << int(m_zoom)) / (hc * 2);
     glm::dvec2 tileSpaceOrigin(-hc, hc);
     glm::dvec2 tileSpaceAxes(invTileSize, -invTileSize);
