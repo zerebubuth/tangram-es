@@ -23,7 +23,6 @@ Tile::Tile(TileID _id, const MapProjection& _projection) :
     BoundingBox bounds(_projection.TileBounds(_id));
 
     m_scale = 0.5 * bounds.width();
-    m_inverseScale = 1.0/m_scale;
 
     m_tileOrigin = bounds.center();
     // negative y coordinate: to change from y down to y up (tile system has y down and gl context we use has y up).

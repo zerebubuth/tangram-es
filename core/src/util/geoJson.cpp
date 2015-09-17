@@ -9,8 +9,8 @@ namespace Tangram {
 void GeoJson::extractPoint(const rapidjson::Value& _in, Point& _out, const Tile& _tile) {
 
     glm::dvec2 tmp = _tile.getProjection()->LonLatToMeters(glm::dvec2(_in[0].GetDouble(), _in[1].GetDouble()));
-    _out.x = (tmp.x - _tile.getOrigin().x) * _tile.getInverseScale();
-    _out.y = (tmp.y - _tile.getOrigin().y) * _tile.getInverseScale();
+    _out.x = (tmp.x - _tile.getOrigin().x) / _tile.getScale();
+    _out.y = (tmp.y - _tile.getOrigin().y) / _tile.getScale();
 
 }
 
@@ -43,18 +43,6 @@ void GeoJson::extractFeature(const rapidjson::Value& _in, Feature& _out, const T
         const auto& member = itr->name.GetString();
 
         const rapidjson::Value& prop = properties[member];
-
-        // height and minheight need to be handled separately so that their dimensions are normalized
-        if (strcmp(member, "height") == 0) {
-            _out.props.add(member, prop.GetDouble() * _tile.getInverseScale());
-            continue;
-        }
-
-        if (strcmp(member, "min_height") == 0) {
-            _out.props.add(member, prop.GetDouble() * _tile.getInverseScale());
-            continue;
-        }
-
 
         if (prop.IsNumber()) {
             _out.props.add(member, prop.GetDouble());

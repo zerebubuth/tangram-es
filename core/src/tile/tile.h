@@ -36,7 +36,6 @@ public:
 
     Tile(TileID _id, const MapProjection& _projection);
 
-
     virtual ~Tile();
 
     /* Returns the immutable <TileID> of this tile */
@@ -50,9 +49,6 @@ public:
 
     /* Returns the length of a side of this tile in projection units */
     float getScale() const { return m_scale; }
-
-    /* Returns the reciprocal of <getScale()> */
-    float getInverseScale() const { return m_inverseScale; }
 
     const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
     
@@ -162,8 +158,6 @@ private:
     bool m_visible;
 
     float m_scale = 1;
-
-    float m_inverseScale = 1;
 
     std::atomic<double> m_priority;
 
