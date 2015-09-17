@@ -136,6 +136,9 @@ class MercatorProjection : public MapProjection {
     constexpr static double CIRCUMFERENCE = 2.0;
 
 public:
+
+    constexpr static double METERS_AT_EQUATOR_SCALE_FACTOR = R_EARTH * PI;
+
     /*
      * Constructor for MercatorProjection
      * _type: type of map projection, example ProjectionType::Mercator

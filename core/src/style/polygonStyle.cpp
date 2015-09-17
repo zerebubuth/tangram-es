@@ -84,7 +84,7 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
     const static std::string key_height("height");
     const static std::string key_min_height("min_height");
 
-    float meterScale = _tile.getScale() * R_EARTH * PI;
+    float meterScale = _tile.getScale() * MercatorProjection::METERS_AT_EQUATOR_SCALE_FACTOR;
 
     float height = _props.getNumeric(key_height) / meterScale;
     float minHeight = _props.getNumeric(key_min_height) / meterScale;
