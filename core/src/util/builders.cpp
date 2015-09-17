@@ -50,12 +50,12 @@ void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuild
         }
     }
 
-    isect2d::AABB bbox;
+    isect2d::AABB<glm::vec2> bbox;
 
     if (_ctx.useTexCoords) {
         if (_polygon.size() > 0 && _polygon[0].size() > 0) {
             // initialize the axis-aligned bounding box of the polygon
-            bbox = isect2d::AABB(_polygon[0][0].x, _polygon[0][0].y, 0, 0);
+            bbox = isect2d::AABB<glm::vec2>(_polygon[0][0].x, _polygon[0][0].y, 0, 0);
         }
         for (auto& p : _polygon[0]) {
             bbox.include(p.x, p.y);
@@ -73,8 +73,8 @@ void Builders::buildPolygon(const Polygon& _polygon, float _height, PolygonBuild
         glm::vec3 coord(p[0], p[1], _height);
 
         if (_ctx.useTexCoords) {
-            float u = mapValue(coord.x, bbox.m_min.x, bbox.m_max.x, 0., 1.);
-            float v = mapValue(coord.y, bbox.m_min.y, bbox.m_max.y, 0., 1.);
+            float u = mapValue(coord.x, bbox.min.x, bbox.max.x, 0., 1.);
+            float v = mapValue(coord.y, bbox.min.y, bbox.max.y, 0., 1.);
             uv = glm::vec2(u, v);
         }
         _ctx.addVertex(coord, normal, uv);

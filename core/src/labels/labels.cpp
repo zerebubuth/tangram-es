@@ -67,20 +67,60 @@ void Labels::update(const View& _view, float _dt, const std::vector<std::unique_
     }
 
     //// Manage occlusions
+    const clock_t beginBroadPhaseTime = clock();
+#if 1
+    {
+        // broad phase
+        m_isect2d.resize({_view.getWidth() / 256, _view.getHeight() / 256}, {_view.getWidth(), _view.getHeight()});
+        m_isect2d.intersect(m_aabbs);
+        float broadTime = (float(clock() - beginBroadPhaseTime) / CLOCKS_PER_SEC) * 1000;
 
-    // broad phase
-    auto pairs = intersect(m_aabbs, {4, 4}, {_view.getWidth(), _view.getHeight()});
+        clock_t beginNarrowTime = clock();
 
-    for (auto pair : pairs) {
-        const auto& aabb1 = m_aabbs[pair.first];
-        const auto& aabb2 = m_aabbs[pair.second];
+        for (auto pair : m_isect2d.pairs) {
+            const auto& aabb1 = m_aabbs[pair.first];
+            const auto& aabb2 = m_aabbs[pair.second];
 
-        auto l1 = (Label*)aabb1.m_userData;
-        auto l2 = (Label*)aabb2.m_userData;
+            auto l1 = static_cast<Label*>(aabb1.m_userData);
+            auto l2 = static_cast<Label*>(aabb2.m_userData);
 
-        // narrow phase
-        if (intersect(l1->getOBB(), l2->getOBB())) { occlusions.insert({l1, l2}); }
+            // narrow phase
+            if (intersect(l1->getOBB(), l2->getOBB())) { occlusions.insert({l1, l2}); }
+        }
+
+        float narrowTime = (float(clock() - beginNarrowTime) / CLOCKS_PER_SEC) * 1000;
+        if (narrowTime + broadTime > 0.5f) {
+            logMsg("new: %d labels : %f %f\n", m_labels.size(), broadTime, narrowTime);
+        }
     }
+
+#endif
+#if 1
+        {
+            auto pairs = isect2d::intersect(m_aabbs, {4, 4}, {_view.getWidth(), _view.getHeight()});
+
+            float broadTime = (float(clock() - beginBroadPhaseTime) / CLOCKS_PER_SEC) * 1000;
+
+            clock_t beginNarrowTime = clock();
+
+            for (auto pair : pairs) {
+                const auto& aabb1 = m_aabbs[pair.first];
+                const auto& aabb2 = m_aabbs[pair.second];
+
+                auto l1 = static_cast<Label*>(aabb1.m_userData);
+                auto l2 = static_cast<Label*>(aabb2.m_userData);
+
+                // narrow phase
+                if (intersect(l1->getOBB(), l2->getOBB())) { occlusions.insert({l1, l2}); }
+            }
+            float narrowTime = (float(clock() - beginNarrowTime) / CLOCKS_PER_SEC) * 1000;
+
+            if (narrowTime + broadTime > 0.5f) {
+                logMsg("old: %d labels : %f %f\n", m_labels.size(), broadTime, narrowTime);
+            }
+        }
+
+#endif
 
     for (auto& pair : occlusions) {
         if (!pair.first->occludedLastFrame() || !pair.second->occludedLastFrame()) {
@@ -118,8 +158,13 @@ void Labels::drawDebug(const View& _view) {
             glm::vec2 sp = label->getTransform().state.screenPos;
 
             // draw bounding box
-            Primitives::setColor(0xdc3522);
-            Primitives::drawPoly(reinterpret_cast<const glm::vec2*>(label->getOBB().getQuad()), 4);
+            if (label->canOcclude()) {
+                Primitives::setColor(0xdc3522);
+            } else {
+                Primitives::setColor(0xee88ee);
+            }
+
+            Primitives::drawPoly(&(label->getOBB().getQuad())[0], 4);
 
             // draw offset
             Primitives::setColor(0x000000);
@@ -131,7 +176,7 @@ void Labels::drawDebug(const View& _view) {
         }
     }
 
-    glm::vec2 split(4, 4);
+    glm::vec2 split(_view.getWidth() / 256, _view.getHeight() / 256);
     glm::vec2 res(_view.getWidth(), _view.getHeight());
     const short xpad = short(ceilf(res.x / split.x));
     const short ypad = short(ceilf(res.y / split.y));
@@ -140,7 +185,7 @@ void Labels::drawDebug(const View& _view) {
     short x = 0, y = 0;
     for (int j = 0; j < split.y; ++j) {
         for (int i = 0; i < split.x; ++i) {
-            isect2d::AABB cell(x, y, x + xpad, y + ypad);
+            AABB cell(x, y, x + xpad, y + ypad);
             Primitives::drawRect({x, y}, {x + xpad, y + ypad});
             x += xpad;
             if (x >= res.x) {
