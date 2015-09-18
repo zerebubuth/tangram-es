@@ -8,12 +8,15 @@ precision highp float;
 
 #define TANGRAM_WORLD_POSITION_WRAP vec3(100000.0)
 
+uniform mat4 u_model;
 uniform mat4 u_modelView;
 uniform mat4 u_modelViewProj;
 uniform mat3 u_normalMatrix;
+uniform vec3 u_tile_origin;
 uniform float u_tile_zoom;
 uniform float u_time;
 uniform float u_zoom;
+uniform vec2 u_resolution;
 
 #pragma tangram: uniforms
 
@@ -35,7 +38,22 @@ varying vec2 v_texcoord;
 
 #pragma tangram: material
 #pragma tangram: lighting
-#pragma tangram: globals
+#pragma tangram: global
+
+// Define a wrap value for world coordinates (allows more precision at higher zooms)
+// e.g. at wrap 1000, the world space will wrap every 1000 meters
+#if defined(TANGRAM_WORLD_POSITION_WRAP)
+    vec2 world_position_anchor = vec2(floor(u_tile_origin / TANGRAM_WORLD_POSITION_WRAP) * TANGRAM_WORLD_POSITION_WRAP);
+
+    // Convert back to absolute world position if needed
+    vec4 absoluteWorldPosition () {
+        return vec4(v_world_position.xy + world_position_anchor, v_world_position.z, v_world_position.w);
+    }
+#else
+    vec4 absoluteWorldPosition () {
+        return v_world_position;
+    }
+#endif
 
 void main() {
 
@@ -75,6 +93,12 @@ void main() {
 
         v_lighting = calculateLighting(v_eyeToPoint.xyz, normal, color);
         v_color = color;
+    #endif
+
+    // World coordinates for 3d procedural textures
+    v_world_position = u_model * position;
+    #if defined(TANGRAM_WORLD_POSITION_WRAP)
+        v_world_position.xy -= world_position_anchor;
     #endif
 
     gl_Position = u_modelViewProj * position;

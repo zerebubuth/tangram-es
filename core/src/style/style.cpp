@@ -94,6 +94,7 @@ void Style::onBeginDrawFrame(const View& _view, const Scene& _scene) {
     }
 
     m_shaderProgram->setUniformf("u_zoom", _view.getZoom());
+    m_shaderProgram->setUniformf("u_resolution", _view.getWidth(), _view.getHeight());
     
     // Configure render state
     switch (m_blend) {

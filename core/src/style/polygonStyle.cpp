@@ -47,7 +47,8 @@ void PolygonStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pro
 
     Parameters params = parseRule(_rule);
 
-    GLuint abgr = params.color;
+    //GLuint abgr = params.color;
+    GLuint abgr = 0xffff00ff; //params.color;
     GLfloat layer = params.order;
 
     PolyLineBuilder builder = {

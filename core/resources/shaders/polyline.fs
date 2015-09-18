@@ -1,3 +1,5 @@
+#pragma POLYLINE-FS
+
 #pragma tangram: extensions
 
 #ifdef GL_ES
@@ -10,6 +12,7 @@ uniform mat4 u_modelView;
 uniform mat4 u_modelViewProj;
 uniform mat3 u_normalMatrix;
 uniform float u_time;
+uniform vec2 u_resolution;
 
 #pragma tangram: uniforms
 
@@ -17,6 +20,7 @@ varying vec4 v_color;
 varying vec3 v_eyeToPoint;
 varying vec3 v_normal;
 varying vec2 v_texcoord;
+varying vec4 v_world_position;
 
 #ifdef TANGRAM_LIGHTING_VERTEX
     varying vec4 v_lighting;
@@ -24,7 +28,7 @@ varying vec2 v_texcoord;
 
 #pragma tangram: material
 #pragma tangram: lighting
-#pragma tangram: globals
+#pragma tangram: global
 
 void main(void) {
     vec4 color = v_color;
