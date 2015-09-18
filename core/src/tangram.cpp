@@ -54,7 +54,6 @@ void initialize(const char* _scenePath) {
 
         // Pass references to the view and scene into the tile manager
         m_tileManager->setView(m_view);
-        m_tileManager->setScene(m_scene);
 
         // label setup
         m_labels = std::unique_ptr<Labels>(new Labels());
@@ -64,8 +63,13 @@ void initialize(const char* _scenePath) {
 
         SceneLoader loader;
 
-        loader.loadScene(sceneString, *m_scene, *m_tileManager, *m_view);
+        if (loader.loadScene(sceneString, *m_scene)) {
+            m_tileManager->setScene(m_scene);
 
+            glm::dvec2 projPos = m_view->getMapProjection().LonLatToMeters(m_scene->startPosition);
+            m_view->setPosition(projPos.x, projPos.y);
+            m_view->setZoom(m_scene->startZoom);
+        }
     }
 
     logMsg("finish initialize\n");

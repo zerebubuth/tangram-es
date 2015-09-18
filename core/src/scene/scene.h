@@ -8,10 +8,13 @@
 #include <vector>
 #include <unordered_map>
 
+#include "glm/glm.hpp"
+
 namespace Tangram {
 
 class Style;
 class Texture;
+class DataSource;
 
 /* Singleton container of <Style> information
  *
@@ -23,6 +26,7 @@ public:
     Scene();
     ~Scene();
 
+    auto& dataSources() { return m_dataSources; };
     auto& layers() { return m_layers; };
     auto& styles() { return m_styles; };
     auto& lights() { return m_lights; };
@@ -30,6 +34,7 @@ public:
     auto& functions() { return m_jsFunctions; };
     auto& spriteAtlases() { return m_spriteAtlases; };
 
+    const auto& dataSources() const { return m_dataSources; };
     const auto& layers() const { return m_layers; };
     const auto& styles() const { return m_styles; };
     const auto& lights() const { return m_lights; };
@@ -40,9 +45,13 @@ public:
 
     const int32_t id;
 
+    glm::dvec2 startPosition = { 0, 0 };
+    float startZoom = 0;
+
 private:
 
     std::vector<DataLayer> m_layers;
+    std::vector<std::shared_ptr<DataSource>> m_dataSources;
     std::vector<std::unique_ptr<Style>> m_styles;
     std::vector<std::unique_ptr<Light>> m_lights;
     std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
