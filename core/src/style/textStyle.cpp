@@ -8,6 +8,7 @@
 #include "labels/textLabel.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "tangram.h"
+#include "data/propertyItem.h" // Include wherever Properties is used!
 
 namespace Tangram {
 
