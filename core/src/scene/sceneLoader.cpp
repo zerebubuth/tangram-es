@@ -86,11 +86,8 @@ glm::vec4 parseVec4(const Node& node) {
     glm::vec4 vec;
     int i = 0;
     for (const auto& nodeVal : node) {
-        if (i < 4) {
-            vec[i++] = nodeVal.as<float>();
-        } else {
-            break;
-        }
+        vec[i++] = nodeVal.as<float>();
+        if (i == 4) { break; }
     }
     return vec;
 }
@@ -99,11 +96,8 @@ glm::vec3 parseVec3(const Node& node) {
     glm::vec3 vec;
     int i = 0;
     for (const auto& nodeVal : node) {
-        if (i < 3) {
-            vec[i++] = nodeVal.as<float>();
-        } else {
-            break;
-        }
+        vec[i++] = nodeVal.as<float>();
+        if (i == 3) { break; }
     }
     return vec;
 }
