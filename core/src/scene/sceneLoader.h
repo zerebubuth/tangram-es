@@ -53,7 +53,8 @@ public:
     static MaterialTexture loadMaterialTexture(YAML::Node matCompNode, Scene& scene);
 
     // public for testing
-    static std::vector<StyleParam> parseStyleParams(YAML::Node params, Scene& scene, const std::string& propPrefix = "");
+    static void parseStyleParams(YAML::Node params, Scene& scene, const std::string& propPrefix,
+                                 std::vector<StyleParam>& out);
 
     // Generic methods to merge properties
     static YAML::Node propMerge(const std::string& propStr, const Mixes& mixes);
