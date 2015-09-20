@@ -53,8 +53,7 @@ bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
     _scene.styles().emplace_back(new DebugStyle("debug"));
     _scene.styles().emplace_back(new SpriteStyle("sprites"));
 
-    Node sources = config["sources"];
-    if (sources) {
+    if (Node sources = config["sources"]) {
         for (const auto& source : sources) {
             try { loadSource(source, _scene); }
             catch (YAML::RepresentationException e) {
@@ -66,8 +65,7 @@ bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
         logMsg("Scene: No source defined in the yaml scene configuration.\n");
     }
 
-    Node textures = config["textures"];
-    if (textures) {
+    if (Node textures = config["textures"]) {
         for (const auto& texture : textures) {
             try { loadTexture(texture, _scene); }
             catch (YAML::RepresentationException e) {
@@ -77,8 +75,7 @@ bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
         }
     }
 
-    Node styles = config["styles"];
-    if (styles) {
+    if (Node styles = config["styles"]) {
         for (const auto& style : styles) {
             try { loadStyle(style, styles, _scene); }
             catch (YAML::RepresentationException e) {
@@ -88,8 +85,7 @@ bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
         }
     }
 
-    Node layers = config["layers"];
-    if (layers) {
+    if (Node layers = config["layers"]) {
         for (const auto& layer : layers) {
             try { loadLayer(layer, _scene); }
             catch (YAML::RepresentationException e) {
@@ -99,8 +95,7 @@ bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
         }
     }
 
-    Node lights = config["lights"];
-    if (lights) {
+    if (Node lights = config["lights"]) {
         for (const auto& light : lights) {
             try { loadLight(light, _scene); }
             catch (YAML::RepresentationException e) {
@@ -115,10 +110,12 @@ bool SceneLoader::loadScene(const std::string& _sceneString, Scene& _scene) {
         _scene.lights().push_back(std::move(amb));
     }
 
-    try { loadCameras(config["cameras"], _scene); }
-    catch (YAML::RepresentationException e) {
-        logMsg("Error: Parsing cameras: '%s' in:\n%s\n",
-               e.what(), Dump(config["cameras"]).c_str());
+    if (Node cameras = config["cameras"]) {
+        try { loadCameras(cameras, _scene); }
+        catch (YAML::RepresentationException e) {
+            logMsg("Error: Parsing cameras: '%s' in:\n%s\n",
+                   e.what(), Dump(cameras).c_str());
+        }
     }
 
     for (auto& style : _scene.styles()) {
@@ -291,12 +288,9 @@ void SceneLoader::loadMaterial(Node matNode, Material& material, Scene& scene) {
                          std::bind(&Material::setSpecularTex, &material, _1),
                          std::bind(&Material::setSpecular, &material, _1));
 
-    Node shininess = matNode["shininess"];
-
-    if (shininess) {
-        try {
-            material.setShininess(shininess.as<float>());
-        } catch(const BadConversion& e) {
+    if (Node shininess = matNode["shininess"]) {
+        try { material.setShininess(shininess.as<float>()); }
+        catch(const BadConversion& e) {
             logMsg("Scene: Float value expected for shininess material parameter");
         }
     }
@@ -335,11 +329,19 @@ MaterialTexture SceneLoader::loadMaterialTexture(Node matCompNode, Scene& scene)
 
     if (mappingNode) {
         std::string mapping = mappingNode.as<std::string>();
-        if (mapping == "uv") { matTex.mapping = MappingType::uv; }
-        else if (mapping == "spheremap") { matTex.mapping = MappingType::spheremap; }
-        else if (mapping == "planar") { logMsg("Scene: Planar texture mapping not yet implemented\n"); } // TODO
-        else if (mapping == "triplanar") { logMsg("Scene: Triplanar texture mapping not yet implemented\n"); } // TODO
-        else { logMsg("Scene: Unrecognized texture mapping '%s'\n", mapping.c_str()); }
+        if (mapping == "uv") {
+            matTex.mapping = MappingType::uv;
+        } else if (mapping == "spheremap") {
+            matTex.mapping = MappingType::spheremap;
+        } else if (mapping == "planar") {
+            // TODO
+            logMsg("Scene: Planar texture mapping not yet implemented\n");
+        } else if (mapping == "triplanar") {
+            // TODO
+            logMsg("Scene: Triplanar texture mapping not yet implemented\n");
+        } else {
+            logMsg("Scene: Unrecognized texture mapping '%s'\n", mapping.c_str());
+        }
     }
 
     if (scaleNode) {
@@ -354,7 +356,9 @@ MaterialTexture SceneLoader::loadMaterialTexture(Node matCompNode, Scene& scene)
 
     if (amountNode) {
         if (amountNode.IsSequence() && amountNode.size() == 3) {
-            matTex.amount = { amountNode[0].as<float>(), amountNode[1].as<float>(), amountNode[2].as<float>() };
+            matTex.amount = { amountNode[0].as<float>(),
+                              amountNode[1].as<float>(),
+                              amountNode[2].as<float>() };
         } else if (amountNode.IsScalar()) {
             matTex.amount = glm::vec3(amountNode.as<float>());
         } else {
@@ -578,31 +582,32 @@ Node SceneLoader::shaderExtMerge(const Mixes& mixes) {
     std::unordered_set<std::string> uniqueList;
 
     for (const auto& mixNode : mixes) {
-        if (Node shaderNode = mixNode["shaders"]) {
-            if (Node extNode = shaderNode["extensions"]) {
-                switch(extNode.Type()) {
-                case NodeType::Scalar: {
-                    auto val = extNode.as<std::string>();
+        Node shaderNode = mixNode["shaders"];
+        Node extNode = shaderNode["extensions"];
+
+        if (shaderNode && extNode) {
+            switch(extNode.Type()) {
+            case NodeType::Scalar: {
+                auto val = extNode.as<std::string>();
+                if (uniqueList.find(val) == uniqueList.end()) {
+                    node.push_back(extNode);
+                    uniqueList.insert(val);
+                }
+                break;
+            }
+            case NodeType::Sequence: {
+                for (const auto& n : extNode) {
+                    auto val = n.as<std::string>();
                     if (uniqueList.find(val) == uniqueList.end()) {
-                        node.push_back(extNode);
+                        node.push_back(n);
                         uniqueList.insert(val);
                     }
-                    break;
                 }
-                case NodeType::Sequence: {
-                    for (const auto& n : extNode) {
-                        auto val = n.as<std::string>();
-                        if (uniqueList.find(val) == uniqueList.end()) {
-                            node.push_back(n);
-                            uniqueList.insert(val);
-                        }
-                    }
-                    break;
-                }
-                default:
-                    logMsg("Scene: Expected scalar or sequence value for extensions node '%s'.\n",
-                        Dump(node).c_str());
-                }
+                break;
+            }
+            default:
+                logMsg("Scene: Expected scalar or sequence value for extensions node '%s'.\n",
+                       Dump(node).c_str());
             }
         }
     }
@@ -1059,29 +1064,29 @@ void SceneLoader::parseStyleParams(Node params, Scene& scene, const std::string&
         Node value = prop.second;
 
         switch (value.Type()) {
-             case NodeType::Scalar: {
-                 auto& val = value.as<std::string>();
+        case NodeType::Scalar: {
+            auto& val = value.as<std::string>();
 
-                 if (val.compare(0, 8, "function") == 0) {
-                     StyleParam param(key, "");
-                     param.function = scene.functions().size();
-                     scene.functions().push_back(val);
-                     out.push_back(std::move(param));
-                 } else {
-                     out.push_back({ key, val });
-                 }
-                 break;
-             }
-
-            case NodeType::Sequence: out.push_back({ key, parseSequence(value) });
-                break;
-            case NodeType::Map: {
-                // NB: Flatten parameter map
-                parseStyleParams(value, scene, key, out);
-                break;
+            if (val.compare(0, 8, "function") == 0) {
+                StyleParam param(key, "");
+                param.function = scene.functions().size();
+                scene.functions().push_back(val);
+                out.push_back(std::move(param));
+            } else {
+                out.push_back({key, val});
             }
-            default:
-                logMsg("Scene: Style parameter %s must be a scalar, sequence, or map.\n", key.c_str());
+            break;
+        }
+
+        case NodeType::Sequence: out.push_back({key, parseSequence(value)});
+            break;
+        case NodeType::Map: {
+            // NB: Flatten parameter map
+            parseStyleParams(value, scene, key, out);
+            break;
+        }
+        default:
+            logMsg("Scene: Style parameter %s must be a scalar, sequence, or map.\n", key.c_str());
         }
     }
 }
