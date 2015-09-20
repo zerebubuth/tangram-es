@@ -734,101 +734,82 @@ void SceneLoader::loadLight(const std::pair<Node, Node>& node, Scene& scene) {
     const std::string name = node.first.Scalar();
     const std::string type = light["type"].as<std::string>();
 
-    std::unique_ptr<Light> lightPtr;
+    std::unique_ptr<Light> sceneLight;
 
     if (type == "ambient") {
-
-        lightPtr = std::make_unique<AmbientLight>(name);
+        sceneLight = std::make_unique<AmbientLight>(name);
 
     } else if (type == "directional") {
+        auto dLight(std::make_unique<DirectionalLight>(name));
 
-        auto dLightPtr(std::make_unique<DirectionalLight>(name));
-        Node direction = light["direction"];
-        if (direction) {
-            dLightPtr->setDirection(parseVec3(direction));
+        if (Node direction = light["direction"]) {
+            dLight->setDirection(parseVec3(direction));
         }
-        lightPtr = std::move(dLightPtr);
+        sceneLight = std::move(dLight);
 
     } else if (type == "point") {
+        auto pLight(std::make_unique<PointLight>(name));
 
-        auto pLightPtr(std::make_unique<PointLight>(name));
-        Node position = light["position"];
-        if (position) {
-            pLightPtr->setPosition(parseVec3(position));
+        if (Node position = light["position"]) {
+            pLight->setPosition(parseVec3(position));
         }
-        Node radius = light["radius"];
-        if (radius) {
+        if (Node radius = light["radius"]) {
             if (radius.size() > 1) {
-                pLightPtr->setRadius(radius[0].as<float>(), radius[1].as<float>());
+                pLight->setRadius(radius[0].as<float>(), radius[1].as<float>());
             } else {
-                pLightPtr->setRadius(radius.as<float>());
+                pLight->setRadius(radius.as<float>());
             }
         }
-        Node att = light["attenuation"];
-        if (att) {
-            pLightPtr->setAttenuation(att.as<float>());
+        if (Node att = light["attenuation"]) {
+            pLight->setAttenuation(att.as<float>());
         }
-        lightPtr = std::move(pLightPtr);
+        sceneLight = std::move(pLight);
 
     } else if (type == "spotlight") {
+        auto sLight(std::make_unique<SpotLight>(name));
 
-        auto sLightPtr(std::make_unique<SpotLight>(name));
-        Node position = light["position"];
-        if (position) {
-            sLightPtr->setPosition(parseVec3(position));
+        if (Node position = light["position"]) {
+            sLight->setPosition(parseVec3(position));
         }
-        Node direction = light["direction"];
-        if (direction) {
-            sLightPtr->setDirection(parseVec3(direction));
+        if (Node direction = light["direction"]) {
+            sLight->setDirection(parseVec3(direction));
         }
-        Node radius = light["radius"];
-        if (radius) {
+        if (Node radius = light["radius"]) {
             if (radius.size() > 1) {
-                sLightPtr->setRadius(radius[0].as<float>(), radius[1].as<float>());
+                sLight->setRadius(radius[0].as<float>(), radius[1].as<float>());
             } else {
-                sLightPtr->setRadius(radius.as<float>());
+                sLight->setRadius(radius.as<float>());
             }
         }
-        Node angle = light["angle"];
-        if (angle) {
-            sLightPtr->setCutoffAngle(angle.as<float>());
+        if (Node angle = light["angle"]) {
+            sLight->setCutoffAngle(angle.as<float>());
         }
-        Node exponent = light["exponent"];
-        if (exponent) {
-            sLightPtr->setCutoffExponent(exponent.as<float>());
+        if (Node exponent = light["exponent"]) {
+            sLight->setCutoffExponent(exponent.as<float>());
         }
-
-        lightPtr = std::move(sLightPtr);
+        sceneLight = std::move(sLight);
     }
-
-    Node origin = light["origin"];
-    if (origin) {
+    if (Node origin = light["origin"]) {
         const std::string originStr = origin.as<std::string>();
         if (originStr == "world") {
-            lightPtr->setOrigin(LightOrigin::world);
+            sceneLight->setOrigin(LightOrigin::world);
         } else if (originStr == "camera") {
-            lightPtr->setOrigin(LightOrigin::camera);
+            sceneLight->setOrigin(LightOrigin::camera);
         } else if (originStr == "ground") {
-            lightPtr->setOrigin(LightOrigin::ground);
+            sceneLight->setOrigin(LightOrigin::ground);
         }
     }
-
-    Node ambient = light["ambient"];
-    if (ambient) {
-        lightPtr->setAmbientColor(parseVec4(ambient));
+    if (Node ambient = light["ambient"]) {
+        sceneLight->setAmbientColor(parseVec4(ambient));
+    }
+    if (Node diffuse = light["diffuse"]) {
+        sceneLight->setDiffuseColor(parseVec4(diffuse));
+    }
+    if (Node specular = light["specular"]) {
+        sceneLight->setSpecularColor(parseVec4(specular));
     }
 
-    Node diffuse = light["diffuse"];
-    if (diffuse) {
-        lightPtr->setDiffuseColor(parseVec4(diffuse));
-    }
-
-    Node specular = light["specular"];
-    if (specular) {
-        lightPtr->setSpecularColor(parseVec4(specular));
-    }
-
-    scene.lights().push_back(std::move(lightPtr));
+    scene.lights().push_back(std::move(sceneLight));
 }
 
 void SceneLoader::loadCameras(Node _cameras, Scene& _scene) {
