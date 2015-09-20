@@ -56,7 +56,7 @@ void TileManager::setScene(std::shared_ptr<Scene> _scene) {
 
             if (sIt != sources.end()) {
                 for_each(tileSet.tiles.begin(), tileSet.tiles.end(),
-                         [&](auto& tile){ setTileState(*tile.second, TileState::canceled);});
+                         [&](auto& tile){ this->setTileState(*tile.second, TileState::canceled);});
 
                 tileSet.tiles.clear();
 
@@ -346,7 +346,7 @@ void TileManager::loadTiles() {
         if (source->getTileData(task)) {
             m_dataCallback(std::move(task));
 
-        } else if (m_loadPending < MAX_DOWNLOADS) {
+        } else if (m_loadPending < (int)MAX_DOWNLOADS) {
             setTileState(*tile, TileState::loading);
 
             if (!source->loadTileData(std::move(task), m_dataCallback)) {

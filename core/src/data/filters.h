@@ -151,6 +151,9 @@ namespace Tangram {
                 case FilterType::undefined:
                     return true;
             }
+            // Cannot be reached
+            assert(false);
+            return false;
         }
     };
 }
