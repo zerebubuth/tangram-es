@@ -61,9 +61,7 @@ void initialize(const char* _scenePath) {
         logMsg("Loading Tangram scene file: %s\n", _scenePath);
         auto sceneString = stringFromResource(_scenePath);
 
-        SceneLoader loader;
-
-        if (loader.loadScene(sceneString, *m_scene)) {
+        if (SceneLoader::loadScene(sceneString, *m_scene)) {
             m_tileManager->setScene(m_scene);
 
             glm::dvec2 projPos = m_view->getMapProjection().LonLatToMeters(m_scene->startPosition);
