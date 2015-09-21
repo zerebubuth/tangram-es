@@ -77,8 +77,8 @@ public class Tangram {
     TangramJNI.handleShoveGesture(_distance);
   }
 
-  public static int addDataSource(DataSource _source) {
-    return TangramJNI.addDataSource(DataSource.getCPtr(_source), _source);
+  public static void addDataSource(DataSource _source) {
+    TangramJNI.addDataSource(DataSource.getCPtr(_source), _source);
   }
 
   public static void clearDataSource(DataSource _source, boolean _data, boolean _tiles) {

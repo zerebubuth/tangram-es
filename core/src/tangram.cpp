@@ -257,23 +257,16 @@ void setPixelScale(float _pixelsPerPoint) {
     }
 }
 
-int addDataSource(const char* _name) {
-
-    if (!m_tileManager) { return -1; }
+void addDataSource(std::shared_ptr<DataSource> _source) {
+    if (!m_tileManager) { return; }
     std::lock_guard<std::mutex> lock(m_tilesMutex);
-    auto source = std::make_shared<ClientGeoJsonSource>(std::string(_name), "");
-    m_tileManager->addDataSource(source);
 
-    return source->id();
-}
-
-int addDataSource(std::shared_ptr<DataSource> _source) {
     m_tileManager->addDataSource(_source);
-    return _source->id();
 }
 
 void clearDataSource(DataSource& _source, bool _data, bool _tiles) {
     if (!m_tileManager) { return; }
+    std::lock_guard<std::mutex> lock(m_tilesMutex);
 
     if (_tiles) { m_tileManager->clearTileSet(_source.id()); }
     if (_data) { _source.clearData(); }
@@ -290,39 +283,6 @@ void clearSourceData(int _sourceId) {
             set.source->clearData();
             m_tileManager->clearTileSet(_sourceId);
         }
-    }
-    requestRender();
-}
-
-void addSourcePoint(int _sourceId, double* _coords) {
-    if (!m_tileManager) { return; }
-    std::lock_guard<std::mutex> lock(m_tilesMutex);
-    auto source = m_tileManager->getClientSourceById(_sourceId);
-    if (source) {
-        source->addPoint(Tags{}, _coords);
-        m_tileManager->clearTileSet(_sourceId);
-    }
-    requestRender();
-}
-
-void addSourceLine(int _sourceId, double* _coords, int _lineLength) {
-    if (!m_tileManager) { return; }
-    std::lock_guard<std::mutex> lock(m_tilesMutex);
-    auto source = m_tileManager->getClientSourceById(_sourceId);
-    if (source) {
-        source->addLine(Tags{},_coords, _lineLength);
-        m_tileManager->clearTileSet(_sourceId);
-    }
-    requestRender();
-}
-
-void addSourcePoly(int _sourceId, double* _coords, int* _ringLengths, int _rings) {
-    if (!m_tileManager) { return; }
-    std::lock_guard<std::mutex> lock(m_tilesMutex);
-    auto source = m_tileManager->getClientSourceById(_sourceId);
-    if (source) {
-        source->addPoly(Tags{},_coords, _ringLengths, _rings);
-        m_tileManager->clearTileSet(_sourceId);
     }
     requestRender();
 }
