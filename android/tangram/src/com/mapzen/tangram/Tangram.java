@@ -53,6 +53,10 @@ public class Tangram {
     return TangramJNI.getTilt();
   }
 
+  public static void screenToWorldCoordinates(double _x, double _y, LngLat _lngLat) {
+    TangramJNI.screenToWorldCoordinates(_x, _y, LngLat.getCPtr(_lngLat), _lngLat);
+  }
+
   public static void setPixelScale(float _pixelsPerPoint) {
     TangramJNI.setPixelScale(_pixelsPerPoint);
   }
@@ -83,6 +87,10 @@ public class Tangram {
 
   public static void clearDataSource(DataSource _source, boolean _data, boolean _tiles) {
     TangramJNI.clearDataSource(DataSource.getCPtr(_source), _source, _data, _tiles);
+  }
+
+  public static void getPosition(LngLat _lngLat) {
+    TangramJNI.getPosition(LngLat.getCPtr(_lngLat), _lngLat);
   }
 
 }

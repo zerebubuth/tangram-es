@@ -1579,6 +1579,25 @@ SWIGEXPORT jfloat JNICALL Java_com_mapzen_tangram_TangramJNI_getTilt(JNIEnv *jen
 }
 
 
+SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_screenToWorldCoordinates(JNIEnv *jenv, jclass jcls, jdouble jarg1, jdouble jarg2, jlong jarg3, jobject jarg3_) {
+  double arg1 ;
+  double arg2 ;
+  Tangram::LngLat *arg3 = 0 ;
+
+  (void)jenv;
+  (void)jcls;
+  (void)jarg3_;
+  arg1 = (double)jarg1;
+  arg2 = (double)jarg2;
+  arg3 = *(Tangram::LngLat **)&jarg3;
+  if (!arg3) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Tangram::LngLat & reference is null");
+    return ;
+  }
+  Tangram::screenToWorldCoordinates(arg1,arg2,*arg3);
+}
+
+
 SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_setPixelScale(JNIEnv *jenv, jclass jcls, jfloat jarg1) {
   float arg1 ;
 
@@ -1685,6 +1704,21 @@ SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_clearDataSource(JNIEn
   arg2 = jarg2 ? true : false;
   arg3 = jarg3 ? true : false;
   Tangram::clearDataSource(*arg1,arg2,arg3);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_getPosition(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  Tangram::LngLat *arg1 = 0 ;
+
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Tangram::LngLat **)&jarg1;
+  if (!arg1) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Tangram::LngLat & reference is null");
+    return ;
+  }
+  Tangram::getPosition(*arg1);
 }
 
 

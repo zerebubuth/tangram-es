@@ -16,6 +16,7 @@
 namespace Tangram {
 
 class DataSource;
+struct LngLat;
 
 // Create resources and initialize the map view using the scene file at the
 // given resource path
@@ -39,6 +40,7 @@ void setPosition(double _lon, double _lat);
 // Set the values of the arguments to the position of the map view in degrees
 // longitude and latitude
 void getPosition(double& _lon, double& _lat);
+void getPosition(LngLat& _out);
 
 // Set the fractional zoom level of the view
 void setZoom(float _z);
@@ -63,6 +65,7 @@ float getTilt();
 // Transform coordinates in screen space (x right, y down) into their longitude
 // and latitude in the map view
 void screenToWorldCoordinates(double& _x, double& _y);
+void screenToWorldCoordinates(double _x, double _y, LngLat& _out);
 
 // Set the ratio of hardware pixels to logical pixels (defaults to 1.0)
 void setPixelScale(float _pixelsPerPoint);

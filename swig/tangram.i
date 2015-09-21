@@ -16,6 +16,7 @@
 %include "std_vector.i"
 %include "std_shared_ptr.i"
 
+
 // http://www.swig.org/Doc3.0/Java.html#Java_imclass_pragmas
 // Change class modifier of the native methods intermediate class (i.e. TangramJNI)
 // %pragma(java) jniclassclassmodifiers="class"
@@ -59,24 +60,22 @@ struct Properties {
 // - ClientGeoJsonSource
 %include "jni_datasource.i"
 
+// Make all jni calls synchronized for now
+// %javamethodmodifiers Tangram "public synchronized";
+
 namespace Tangram {
 void initialize(const char* _scenePath);
 void setupGL();
 void resize(int _newWidth, int _newHeight);
 void render();
 void setPosition(double _lon, double _lat);
-// void getPosition(LngLat& _lngLat) {
-//     getPosition(_lngLat.longitude, _lngLat.latitude);
-// }
 void setZoom(float _z);
 float getZoom();
 void setRotation(float _radians);
 float getRotation();
 void setTilt(float _radians);
 float getTilt();
-// void screenToWorldCoordinates(LngLat& _lngLat) {
-//     screenToWorldCoordinates(_lngLat.longitude, _lngLat.latitude);
-// }
+void screenToWorldCoordinates(double _x, double _y, LngLat& _lngLat);
 void setPixelScale(float _pixelsPerPoint);
 
 void handleTapGesture(float _posX, float _posY);
@@ -87,4 +86,6 @@ void handleShoveGesture(float _distance);
 
 void addDataSource(std::shared_ptr<Tangram::DataSource> _source);
 void clearDataSource(DataSource& _source, bool _data, bool _tiles);
+
+void getPosition(LngLat& _lngLat);
 }

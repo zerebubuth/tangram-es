@@ -82,6 +82,7 @@ public class TangramJNI {
   public final static native float getRotation();
   public final static native void setTilt(float jarg1);
   public final static native float getTilt();
+  public final static native void screenToWorldCoordinates(double jarg1, double jarg2, long jarg3, LngLat jarg3_);
   public final static native void setPixelScale(float jarg1);
   public final static native void handleTapGesture(float jarg1, float jarg2);
   public final static native void handlePanGesture(float jarg1, float jarg2, float jarg3, float jarg4);
@@ -90,5 +91,6 @@ public class TangramJNI {
   public final static native void handleShoveGesture(float jarg1);
   public final static native void addDataSource(long jarg1, DataSource jarg1_);
   public final static native void clearDataSource(long jarg1, DataSource jarg1_, boolean jarg2, boolean jarg3);
+  public final static native void getPosition(long jarg1, LngLat jarg1_);
   public final static native long MapData_SWIGSmartPtrUpcast(long jarg1);
 }

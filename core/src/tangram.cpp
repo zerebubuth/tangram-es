@@ -196,6 +196,10 @@ void getPosition(double& _lon, double& _lat) {
 
 }
 
+void getPosition(LngLat& _out) {
+    getPosition(_out.longitude, _out.latitude);
+}
+
 void setZoom(float _z) {
 
     m_view->setZoom(_z);
@@ -244,6 +248,11 @@ void screenToWorldCoordinates(double& _x, double& _y) {
     _x = lonLat.x;
     _y = lonLat.y;
 
+}
+
+void screenToWorldCoordinates(double _x, double _y, LngLat& _out) {
+    screenToWorldCoordinates(_x, _y);
+    _out = LngLat{ _x, _y };
 }
 
 void setPixelScale(float _pixelsPerPoint) {
