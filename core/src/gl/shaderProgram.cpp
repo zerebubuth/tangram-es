@@ -336,6 +336,52 @@ void ShaderProgram::setUniformMatrix4f(const std::string& _name, const float* _v
     if (location >= 0) { glUniformMatrix4fv(location, 1, _transpose, _value); }
 }
 
+std::string uniformTypeName(const UniformValue& value) {
+
+    if(value.is<float>()) {
+        return "float";
+    } else if(value.is<glm::vec2>()) {
+        return "vec2";
+    } else if(value.is<glm::vec3>()) {
+        return "vec3";
+    } else if(value.is<glm::vec4>()) {
+        return "vec4";
+    } else if(value.is<std::string>()) {
+        return "sampler2D";
+    } else if(value.is<bool>()) {
+        return "bool";
+    }
+
+    assert(false);
+    return "";
+}
+
+
+void ShaderProgram::addUniform(std::string _name, std::vector<UniformValue>&& _uniformValue) {
+
+    int size = _uniformValue.size();
+
+    if (size == 1) {
+        addSourceBlock("uniforms", "uniform " +
+                       uniformTypeName(_uniformValue[0])
+                       + " " + _name + ";");
+
+        m_uniforms.emplace_back(std::move(_name), std::move(_uniformValue[0]));
+
+    } else {
+
+        addSourceBlock("uniforms", "uniform "
+                       + uniformTypeName(_uniformValue[0])
+                       + " " + _name + "[" + std::to_string(size) + "];");
+
+        for (int i = 0; i < size; i++) {
+            m_uniforms.emplace_back(_name + "[" + std::to_string(i) + "]",
+                                    std::move(_uniformValue[i]));
+        }
+    }
+}
+
+
 void ShaderProgram::setupUniforms(int _textureUnit, bool _update, Scene& _scene) {
     for (const auto& uniformPair : m_uniforms) {
         const auto& name = uniformPair.first;

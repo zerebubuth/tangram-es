@@ -108,20 +108,8 @@ void SceneLoader::loadShaderConfig(Node shaders, Style& style, Scene& scene) {
     if (Node uniformsNode = shaders["uniforms"]) {
         for (const auto& uniform : uniformsNode) {
             auto name = uniform.first.as<std::string>();
-            auto uniforms = parseStyleUniforms(uniform.second, scene);
-            auto& type = uniforms.first;
-            auto& uniformValues = uniforms.second;
-            int size = uniformValues.size();
-            if (size == 1) {
-                shader.uniforms().emplace_back(name, uniformValues[0]);
-                shader.addSourceBlock("uniforms", "uniform " + type + " " + name + ";");
-            } else {
-                shader.addSourceBlock("uniforms", "uniform " + type + " " + name +
-                                                        "[" + std::to_string(size) + "];");
-                for (int i = 0; i < size; i++) {
-                    shader.styleUniforms().emplace_back(name + "[" + std::to_string(i) + "]", uniformValues[i]);
-                }
-            }
+            auto uniformValue = parseStyleUniform(uniform.second, scene);
+            shader.addUniform(name, std::move(uniformValue));
         }
     }
 
@@ -1024,21 +1012,17 @@ std::vector<StyleParam> SceneLoader::parseStyleParams(Node params, Scene& scene,
     return out;
 }
 
-StyleUniforms SceneLoader::parseStyleUniforms(const Node& value, Scene& scene) {
-    std::string type = "";
+std::vector<UniformValue> SceneLoader::parseStyleUniform(const Node& value, Scene& scene) {
     std::vector<UniformValue> uniformValues;
     if (value.IsScalar()) { //float, int (bool), string (texture)
         UniformValue uVal;
         try {
             uVal = value.as<float>();
-            type = "float";
         } catch (const BadConversion& e) {
             try {
                 uVal = value.as<bool>();
-                type = "bool";
             } catch (const BadConversion& e) {
                 auto strVal = value.as<std::string>();
-                type = "sampler2D";
                 uVal = strVal;
                 auto texItr = scene.textures().find(strVal);
                 if (texItr == scene.textures().end()) {
@@ -1050,7 +1034,6 @@ StyleUniforms SceneLoader::parseStyleUniforms(const Node& value, Scene& scene) {
     } else if (value.IsSequence()) {
         int size = value.size();
         try {
-            type = "vec" + std::to_string(size);
             UniformValue uVal;
             switch (size) {
                 case 2:
@@ -1069,7 +1052,6 @@ StyleUniforms SceneLoader::parseStyleUniforms(const Node& value, Scene& scene) {
             uniformValues.push_back(uVal);
         } catch (const BadConversion& e) { // array of strings (textures)
             uniformValues.reserve(size);
-            type = "sampler2D";
             for (const auto& strVal : value) {
                 auto textureName = strVal.as<std::string>();
                 uniformValues.push_back(textureName);
@@ -1082,7 +1064,7 @@ StyleUniforms SceneLoader::parseStyleUniforms(const Node& value, Scene& scene) {
     } else {
         logMsg("Warning: Expected a scalar or sequence value for uniforms\n");
     }
-    return std::make_pair(type, std::move(uniformValues));
+    return uniformValues;
 }
 
 void SceneLoader::loadFont(Node fontProps) {

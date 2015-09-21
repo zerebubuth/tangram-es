@@ -27,8 +27,6 @@ struct MaterialTexture;
 struct Filter;
 
 using Mixes = std::vector<YAML::Node>;
-// 0: type, 1: values
-using StyleUniforms = std::pair<std::string, std::vector<UniformValue>>;
 
 class SceneLoader {
 
@@ -63,7 +61,7 @@ public:
 
     // public for testing
     std::vector<StyleParam> parseStyleParams(YAML::Node params, Scene& scene, const std::string& propPrefix = "");
-    StyleUniforms parseStyleUniforms(const YAML::Node& uniform, Scene& scene);
+    std::vector<UniformValue> parseStyleUniform(const YAML::Node& uniform, Scene& scene);
 
     // Generic methods to merge properties
     YAML::Node propMerge(const std::string& propStr, const Mixes& mixes);

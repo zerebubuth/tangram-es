@@ -71,6 +71,8 @@ public:
        and bind textures starting at @_textureUnit */
     void setupUniforms(int _textureUnit, bool _updateUniforms, Scene& _scene);
 
+    void addUniform(std::string _name, std::vector<UniformValue>&& _uniformValue);
+
     /*
      * Ensures the program is bound and then sets the named uniform to the given value(s)
      */
