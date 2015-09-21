@@ -114,7 +114,7 @@ void SpriteStyle::onBeginDrawFrame(const View& _view, Scene& _scene) {
     }
 
     m_spriteAtlas->bind(0);
-    setupShaderUniforms(1, contextLost, _scene);
+    m_shaderProgram->setupUniforms(1, contextLost, _scene);
 
     static bool initUniformSampler = true;
 

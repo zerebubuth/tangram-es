@@ -113,13 +113,13 @@ void SceneLoader::loadShaderConfig(Node shaders, Style& style, Scene& scene) {
             auto& uniformValues = uniforms.second;
             int size = uniformValues.size();
             if (size == 1) {
+                shader.uniforms().emplace_back(name, uniformValues[0]);
                 shader.addSourceBlock("uniforms", "uniform " + type + " " + name + ";");
-                style.styleUniforms().emplace_back(name, uniformValues[0]);
             } else {
                 shader.addSourceBlock("uniforms", "uniform " + type + " " + name +
                                                         "[" + std::to_string(size) + "];");
                 for (int i = 0; i < size; i++) {
-                    style.styleUniforms().emplace_back(name + "[" + std::to_string(i) + "]", uniformValues[i]);
+                    shader.styleUniforms().emplace_back(name + "[" + std::to_string(i) + "]", uniformValues[i]);
                 }
             }
         }

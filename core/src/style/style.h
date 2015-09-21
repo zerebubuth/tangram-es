@@ -6,7 +6,6 @@
 #include "gl/shaderProgram.h"
 #include "gl/renderState.h"
 #include "scene/sceneLayer.h"
-#include "util/variant.h"
 
 #include <memory>
 #include <string>
@@ -48,8 +47,6 @@ enum class Blending : char {
  * geometry into meshes. See <PolygonStyle> for a basic implementation.
  */
 class Style {
-
-using StyleUniform = std::pair< std::string, UniformValue >;
 
 protected:
 
@@ -103,15 +100,10 @@ protected:
     /* Toggle on read if true, checks whether the context has been lost on last frame */
     bool glContextLost();
 
-    /* Set uniform values when @_updateUniforms is true,
-       and bind textures starting at @_textureUnit */
-    void setupShaderUniforms(int _textureUnit, bool _updateUniforms, Scene& _scene);
-
 private:
 
     /* Whether the context has been lost on last frame */
     bool m_contextLost;
-    std::vector<StyleUniform> m_styleUniforms;
 
 public:
 
@@ -160,8 +152,6 @@ public:
     const std::unique_ptr<ShaderProgram>& getShaderProgram() const { return m_shaderProgram; }
 
     const std::string& getName() const { return m_name; }
-
-    std::vector<StyleUniform>& styleUniforms() { return m_styleUniforms; }
 
 };
 

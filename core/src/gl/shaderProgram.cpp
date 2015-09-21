@@ -3,6 +3,7 @@
 #include "platform.h"
 #include "scene/light.h"
 #include "gl/renderState.h"
+#include "scene/scene.h"
 
 namespace Tangram {
 
@@ -47,7 +48,8 @@ void ShaderProgram::setSourceStrings(const std::string& _fragSrc, const std::str
     m_needsBuild = true;
 }
 
-void ShaderProgram::addSourceBlock(const std::string& _tagName, const std::string &_glslSource, bool _allowDuplicate){
+void ShaderProgram::addSourceBlock(const std::string& _tagName, const std::string &_glslSource,
+                                   bool _allowDuplicate){
 
     if (!_allowDuplicate) {
         for (auto& source : m_sourceBlocks[_tagName]) {
@@ -101,7 +103,7 @@ void ShaderProgram::use() {
     if (m_needsBuild) {
         build();
     }
-    
+
     if (m_glProgram != 0) {
         RenderState::shaderProgram(m_glProgram);
     }
@@ -332,6 +334,47 @@ void ShaderProgram::setUniformMatrix4f(const std::string& _name, const float* _v
     use();
     GLint location = getUniformLocation(_name);
     if (location >= 0) { glUniformMatrix4fv(location, 1, _transpose, _value); }
+}
+
+void ShaderProgram::setupUniforms(int _textureUnit, bool _update, Scene& _scene) {
+    for (const auto& uniformPair : m_uniforms) {
+        const auto& name = uniformPair.first;
+        const auto& value = uniformPair.second;
+
+        auto& textures = _scene.textures();
+
+        if (value.is<std::string>()) {
+
+            auto& tex = textures[value.get<std::string>()];
+
+            tex->update(_textureUnit);
+            tex->bind(_textureUnit);
+
+            if (_update) {
+                setUniformi(name, _textureUnit);
+            }
+
+            _textureUnit++;
+
+        } else {
+            if (!_update) { continue; }
+
+            if (value.is<bool>()) {
+                setUniformi(name, value.get<bool>());
+            } else if(value.is<float>()) {
+                setUniformf(name, value.get<float>());
+            } else if(value.is<glm::vec2>()) {
+                setUniformf(name, value.get<glm::vec2>());
+            } else if(value.is<glm::vec3>()) {
+                setUniformf(name, value.get<glm::vec3>());
+            } else if(value.is<glm::vec4>()) {
+                setUniformf(name, value.get<glm::vec4>());
+            } else {
+                // TODO: Throw away uniform on loading!
+                // none_type
+            }
+        }
+    }
 }
 
 }

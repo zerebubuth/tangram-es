@@ -4,6 +4,7 @@
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
+#include "util/variant.h"
 
 #include <string>
 #include <vector>
@@ -11,10 +12,15 @@
 #include <unordered_map>
 
 namespace Tangram {
+
+class Scene;
+
 /*
  * ShaderProgram - utility class representing an OpenGL shader program
  */
 class ShaderProgram {
+
+    using Uniform = std::pair< std::string, UniformValue >;
 
 public:
 
@@ -61,6 +67,10 @@ public:
      */
     void use();
 
+    /* Set uniform values when @_updateUniforms is true,
+       and bind textures starting at @_textureUnit */
+    void setupUniforms(int _textureUnit, bool _updateUniforms, Scene& _scene);
+
     /*
      * Ensures the program is bound and then sets the named uniform to the given value(s)
      */
@@ -85,6 +95,8 @@ public:
     void setUniformMatrix2f(const std::string& _name, const float* _value, bool transpose = false);
     void setUniformMatrix3f(const std::string& _name, const float* _value, bool transpose = false);
     void setUniformMatrix4f(const std::string& _name, const float* _value, bool transpose = false);
+
+    std::vector<Uniform>& uniforms() { return m_uniforms; }
 
     /* Invalidates all managed ShaderPrograms
      *
@@ -119,6 +131,8 @@ private:
     std::string m_vertexShaderSource;
 
     std::map<std::string, std::vector<std::string>> m_sourceBlocks;
+
+    std::vector<Uniform> m_uniforms;
 
     bool m_needsBuild;
 
