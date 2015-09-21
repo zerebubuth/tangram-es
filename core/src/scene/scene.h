@@ -3,6 +3,8 @@
 #include "scene/light.h"
 #include "scene/dataLayer.h"
 #include "scene/spriteAtlas.h"
+#include "scene/stops.h"
+#include <list>
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,6 +35,7 @@ public:
     auto& textures() { return m_textures; };
     auto& functions() { return m_jsFunctions; };
     auto& spriteAtlases() { return m_spriteAtlases; };
+    auto& stops() { return m_stops; }
 
     const auto& dataSources() const { return m_dataSources; };
     const auto& layers() const { return m_layers; };
@@ -58,6 +61,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<SpriteAtlas>> m_spriteAtlases;
 
     std::vector<std::string> m_jsFunctions;
+    std::list<Stops> m_stops;
 };
 
 }

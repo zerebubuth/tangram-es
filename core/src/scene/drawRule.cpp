@@ -1,5 +1,6 @@
 #include "drawRule.h"
 #include "platform.h"
+#include "scene/stops.h"
 #include "scene/styleContext.h"
 
 #include <algorithm>
@@ -78,11 +79,19 @@ bool DrawRule::operator<(const DrawRule& _rhs) const {
 }
 
 void DrawRule::eval(const StyleContext& _ctx) {
-     for (auto& param : parameters) {
-         if (param.function >= 0) {
-             _ctx.evalStyle(param.function, param.key, param.value);
-         }
-     }
+
+    for (auto& param : parameters) {
+        if (param.function >= 0) {
+            _ctx.evalStyle(param.function, param.key, param.value);
+        }
+        if (param.stops) {
+            if (param.value.is<float>()) {
+                param.value = param.stops->evalFloat(_ctx.getGlobalZoom());
+            } else if (param.value.is<uint32_t>()) {
+                param.value = param.stops->evalColor(_ctx.getGlobalZoom());
+            }
+        }
+    }
 }
 
 }

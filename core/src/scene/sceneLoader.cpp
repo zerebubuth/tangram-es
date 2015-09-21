@@ -1096,8 +1096,16 @@ void SceneLoader::parseStyleParams(Node params, Scene& scene, const std::string&
             }
             break;
         }
-
-        case NodeType::Sequence: out.push_back({key, parseSequence(value)});
+        case NodeType::Sequence:
+            if (value[0].IsSequence()) {
+                 // TODO ensure valid placeholder value
+                StyleParam p = { key, value[0][1].Scalar() };
+                scene.stops().push_back(Stops(value, StyleParam::isColor(key)));
+                p.stops = &scene.stops().back();
+                out.push_back(p);
+            } else {
+                out.push_back({ key, parseSequence(value) });
+            }
             break;
         case NodeType::Map: {
             // NB: Flatten parameter map

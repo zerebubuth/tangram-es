@@ -1,5 +1,6 @@
 #include "styleParam.h"
 
+#include "csscolorparser.hpp"
 #include "platform.h"
 #include "util/builders.h" // for cap, join
 #include "util/geom.h" // for CLAMP
@@ -7,6 +8,8 @@
 #include <map>
 
 namespace Tangram {
+
+using Color = CSSColorParser::Color;
 
 const std::map<std::string, StyleParamKey> s_StyleParamMap = {
     {"cap", StyleParamKey::cap},
@@ -46,6 +49,8 @@ static const char* keyName(StyleParamKey key) {
     return empty.c_str();
 }
 
+
+
 StyleParam::StyleParam(const std::string& _key, const std::string& _value) {
 
     auto it = s_StyleParamMap.find(_key);
@@ -57,7 +62,7 @@ StyleParam::StyleParam(const std::string& _key, const std::string& _value) {
     }
 
     key = it->second;
-    value = parseString(key, _value);
+    value = _value.empty() ? none_type{} : parseString(key, _value);
 }
 
 StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& _value) {
@@ -68,7 +73,7 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
         if (_value == "false") { return glm::vec2(0, 0) ; }
         auto vec2 = glm::vec2(NAN, NAN);
         if (!parseVec2(_value, {"m", "px"}, vec2)) {
-            logMsg("Warning: Badly formed extrude parameter %s.\n", _value.c_str());
+            logMsg("Warning: Badly formed extrude parameter '%s'.\n", _value.c_str());
         }
         return vec2;
     }
@@ -76,7 +81,7 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     case StyleParamKey::size: {
         auto vec2 = glm::vec2(0.f, 0.f);
         if (!parseVec2(_value, {"px"}, vec2)) {
-            logMsg("Warning: Badly formed offset parameter %s.\n", _value.c_str());
+            logMsg("Warning: Badly formed offset parameter '%s'.\n", _value.c_str());
         }
         return vec2;
     }
@@ -301,6 +306,21 @@ bool StyleParam::parseFontSize(const std::string& _str, float& _pxSize) {
     }
 
     return true;
+}
+
+bool StyleParam::isColor(const std::string &_keyName) {
+    auto it = s_StyleParamMap.find(_keyName);
+    if (it == s_StyleParamMap.end()) { return false; }
+    switch (it->second) {
+        case StyleParamKey::color:
+        case StyleParamKey::outline_color:
+        case StyleParamKey::font_fill:
+        case StyleParamKey::font_stroke:
+        case StyleParamKey::font_stroke_color:
+            return true;
+        default:
+            return false;
+    }
 }
 
 }
