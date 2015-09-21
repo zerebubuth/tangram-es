@@ -15,12 +15,24 @@ namespace Tangram {
 
 class Scene;
 
+using UniformVariant = variant<none_type, bool, std::string, float, glm::vec2, glm::vec3, glm::vec4>;
+
+/* Style Block Uniform types */
+class UniformValue : public UniformVariant {
+    // Wrapping variant for forward declarability
+    using Base = UniformVariant;
+    using Base::Base;
+};
+
+struct Uniform {
+    std::string name;
+    UniformValue value;
+};
+
 /*
  * ShaderProgram - utility class representing an OpenGL shader program
  */
 class ShaderProgram {
-
-    using Uniform = std::pair< std::string, UniformValue >;
 
 public:
 

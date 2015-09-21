@@ -6,11 +6,6 @@
 #include <tuple>
 
 #include "yaml-cpp/yaml.h"
-#include "glm/vec2.hpp"
-#include "glm/vec3.hpp"
-#include "glm/vec4.hpp"
-
-#include "util/variant.h"
 
 namespace Tangram {
 
@@ -21,6 +16,7 @@ class View;
 class ShaderProgram;
 class Material;
 class Style;
+class UniformValue;
 struct StyleParam;
 struct DrawRule;
 struct MaterialTexture;

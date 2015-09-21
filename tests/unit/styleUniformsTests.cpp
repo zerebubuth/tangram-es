@@ -9,7 +9,7 @@
 #include "yaml-cpp/yaml.h"
 #include "scene/sceneLoader.h"
 #include "scene/scene.h"
-#include "util/variant.h"
+#include "gl/shaderProgram.h"
 
 using namespace Tangram;
 using YAML::Node;

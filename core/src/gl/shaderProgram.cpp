@@ -366,7 +366,7 @@ void ShaderProgram::addUniform(std::string _name, std::vector<UniformValue>&& _u
                        uniformTypeName(_uniformValue[0])
                        + " " + _name + ";");
 
-        m_uniforms.emplace_back(std::move(_name), std::move(_uniformValue[0]));
+        m_uniforms.push_back({std::move(_name), std::move(_uniformValue[0])});
 
     } else {
 
@@ -375,17 +375,17 @@ void ShaderProgram::addUniform(std::string _name, std::vector<UniformValue>&& _u
                        + " " + _name + "[" + std::to_string(size) + "];");
 
         for (int i = 0; i < size; i++) {
-            m_uniforms.emplace_back(_name + "[" + std::to_string(i) + "]",
-                                    std::move(_uniformValue[i]));
+            m_uniforms.push_back({_name + "[" + std::to_string(i) + "]",
+                                  std::move(_uniformValue[i])});
         }
     }
 }
 
 
 void ShaderProgram::setupUniforms(int _textureUnit, bool _update, Scene& _scene) {
-    for (const auto& uniformPair : m_uniforms) {
-        const auto& name = uniformPair.first;
-        const auto& value = uniformPair.second;
+    for (const auto& uniform : m_uniforms) {
+        const auto& name = uniform.name;
+        const auto& value = uniform.value;
 
         auto& textures = _scene.textures();
 
