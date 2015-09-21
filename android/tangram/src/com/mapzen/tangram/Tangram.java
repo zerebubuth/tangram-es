@@ -9,6 +9,74 @@
 package com.mapzen.tangram;
 
 public class Tangram {
+  public static void initialize(String _scenePath) {
+    TangramJNI.initialize(_scenePath);
+  }
+
+  public static void setupGL() {
+    TangramJNI.setupGL();
+  }
+
+  public static void resize(int _newWidth, int _newHeight) {
+    TangramJNI.resize(_newWidth, _newHeight);
+  }
+
+  public static void render() {
+    TangramJNI.render();
+  }
+
+  public static void setPosition(double _lon, double _lat) {
+    TangramJNI.setPosition(_lon, _lat);
+  }
+
+  public static void setZoom(float _z) {
+    TangramJNI.setZoom(_z);
+  }
+
+  public static float getZoom() {
+    return TangramJNI.getZoom();
+  }
+
+  public static void setRotation(float _radians) {
+    TangramJNI.setRotation(_radians);
+  }
+
+  public static float getRotation() {
+    return TangramJNI.getRotation();
+  }
+
+  public static void setTilt(float _radians) {
+    TangramJNI.setTilt(_radians);
+  }
+
+  public static float getTilt() {
+    return TangramJNI.getTilt();
+  }
+
+  public static void setPixelScale(float _pixelsPerPoint) {
+    TangramJNI.setPixelScale(_pixelsPerPoint);
+  }
+
+  public static void handleTapGesture(float _posX, float _posY) {
+    TangramJNI.handleTapGesture(_posX, _posY);
+  }
+
+  public static void handlePanGesture(float _startX, float _startY, float _endX, float _endY) {
+    TangramJNI.handlePanGesture(_startX, _startY, _endX, _endY);
+  }
+
+  public static void handleDoubleTapGesture(float _posX, float _posY) {
+    TangramJNI.handleDoubleTapGesture(_posX, _posY);
+  }
+
+  public static void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity) {
+    TangramJNI.handlePinchGesture(_posX, _posY, _scale, _velocity);
+  }
+
+  public static void handleShoveGesture(float _distance) {
+    TangramJNI.handleShoveGesture(_distance);
+  }
+
   public static int addDataSource(DataSource _source) {
     return TangramJNI.addDataSource(DataSource.getCPtr(_source), _source);
   }
