@@ -283,30 +283,6 @@ void clearDataSource(DataSource& _source, bool _data, bool _tiles) {
     requestRender();
 }
 
-void clearSourceData(int _sourceId) {
-
-    if (!m_tileManager) { return; }
-    std::lock_guard<std::mutex> lock(m_tilesMutex);
-    for (auto& set : m_tileManager->getTileSets()) {
-        if (set.source->id() == _sourceId) {
-            set.source->clearData();
-            m_tileManager->clearTileSet(_sourceId);
-        }
-    }
-    requestRender();
-}
-
-void addSourceGeoJSON(int _sourceId, const char* _data) {
-    if (!m_tileManager) { return; }
-    std::lock_guard<std::mutex> lock(m_tilesMutex);
-    auto source = m_tileManager->getClientSourceById(_sourceId);
-    if (source) {
-        source->addData(_data);
-        m_tileManager->clearTileSet(_sourceId);
-    }
-    requestRender();
-}
-
 void handleTapGesture(float _posX, float _posY) {
 
     m_inputHandler->handleTapGesture(_posX, _posY);
