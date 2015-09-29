@@ -74,6 +74,7 @@ public class TangramJNI {
   public final static native void initialize(String jarg1);
   public final static native void setupGL();
   public final static native void resize(int jarg1, int jarg2);
+  public final static native void update(float jarg1);
   public final static native void render();
   public final static native void setPosition(double jarg1, double jarg2);
   public final static native void setZoom(float jarg1);
@@ -88,6 +89,7 @@ public class TangramJNI {
   public final static native void handlePanGesture(float jarg1, float jarg2, float jarg3, float jarg4);
   public final static native void handleDoubleTapGesture(float jarg1, float jarg2);
   public final static native void handlePinchGesture(float jarg1, float jarg2, float jarg3, float jarg4);
+  public final static native void handleRotateGesture(float jarg1, float jarg2, float jarg3);
   public final static native void handleShoveGesture(float jarg1);
   public final static native void addDataSource(long jarg1, DataSource jarg1_);
   public final static native void clearDataSource(long jarg1, DataSource jarg1_, boolean jarg2, boolean jarg3);

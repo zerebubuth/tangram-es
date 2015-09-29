@@ -1494,6 +1494,16 @@ SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_resize(JNIEnv *jenv, 
 }
 
 
+SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_update(JNIEnv *jenv, jclass jcls, jfloat jarg1) {
+  float arg1 ;
+
+  (void)jenv;
+  (void)jcls;
+  arg1 = (float)jarg1;
+  Tangram::update(arg1);
+}
+
+
 SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_render(JNIEnv *jenv, jclass jcls) {
   (void)jenv;
   (void)jcls;
@@ -1661,6 +1671,20 @@ SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_handlePinchGesture(JN
   arg3 = (float)jarg3;
   arg4 = (float)jarg4;
   Tangram::handlePinchGesture(arg1,arg2,arg3,arg4);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_mapzen_tangram_TangramJNI_handleRotateGesture(JNIEnv *jenv, jclass jcls, jfloat jarg1, jfloat jarg2, jfloat jarg3) {
+  float arg1 ;
+  float arg2 ;
+  float arg3 ;
+
+  (void)jenv;
+  (void)jcls;
+  arg1 = (float)jarg1;
+  arg2 = (float)jarg2;
+  arg3 = (float)jarg3;
+  Tangram::handleRotateGesture(arg1,arg2,arg3);
 }
 
 

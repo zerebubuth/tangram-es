@@ -21,6 +21,10 @@ public class Tangram {
     TangramJNI.resize(_newWidth, _newHeight);
   }
 
+  public static void update(float _dt) {
+    TangramJNI.update(_dt);
+  }
+
   public static void render() {
     TangramJNI.render();
   }
@@ -75,6 +79,10 @@ public class Tangram {
 
   public static void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity) {
     TangramJNI.handlePinchGesture(_posX, _posY, _scale, _velocity);
+  }
+
+  public static void handleRotateGesture(float _posX, float _posY, float _rotation) {
+    TangramJNI.handleRotateGesture(_posX, _posY, _rotation);
   }
 
   public static void handleShoveGesture(float _distance) {

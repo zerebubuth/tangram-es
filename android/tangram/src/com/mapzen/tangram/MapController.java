@@ -109,7 +109,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @param lat Degrees latitude of the position to set
      */
     public void setMapPosition(double lng, double lat) {
-        setPosition(lng, lat);
+        Tangram.setPosition(lng, lat);
     }
 
     /**
@@ -126,9 +126,8 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @return Degrees longitude and latitude of the current map position, in a two-element array
      */
     public LngLat getMapPosition(LngLat out) {
-        double[] tmp = { 0, 0 };
-        getPosition(tmp);
-        return out.set(tmp[0], tmp[1]);
+        Tangram.getPosition(out);
+        return out;
     }
 
     /**
@@ -136,7 +135,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @param zoom Fractional zoom level
      */
     public void setMapZoom(float zoom) {
-        setZoom(zoom);
+        Tangram.setZoom(zoom);
     }
 
     /**
@@ -144,7 +143,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @return Fractional zoom level
      */
     public float getMapZoom() {
-        return getZoom();
+        return Tangram.getZoom();
     }
 
     /**
@@ -152,7 +151,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @param radians Rotation in radians
      */
     public void setMapRotation(float radians) {
-        setRotation(radians);
+        Tangram.setRotation(radians);
     }
 
     /**
@@ -160,7 +159,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @return Rotation in radians
      */
     public float getMapRotation() {
-        return getRotation();
+        return Tangram.getRotation();
     }
 
     /**
@@ -168,7 +167,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @param radians Tilt angle in radians
      */
     public void setMapTilt(float radians) {
-        setTilt(radians);
+        Tangram.setTilt(radians);
     }
 
     /**
@@ -176,7 +175,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @return Tilt angle in radians
      */
     public float getMapTilt() {
-        return getTilt();
+        return Tangram.getTilt();
     }
 
     /**
@@ -186,9 +185,9 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
      * @return LngLat corresponding to the given point
      */
     public LngLat coordinatesAtScreenPosition(double screenX, double screenY) {
-        double[] tmp = { screenX, screenY };
-        screenToWorldCoordinates(tmp);
-        return new LngLat(tmp[0], tmp[1]);
+        LngLat out = new LngLat();
+        Tangram.screenToWorldCoordinates(screenX, screenY, out);
+        return out;
     }
 
     /**
@@ -239,26 +238,26 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
     // ==============
 
     private synchronized native void init(MapController instance, AssetManager assetManager, String stylePath);
-    private synchronized native void setupGL();
-    private synchronized native void resize(int width, int height);
-    private synchronized native void update(float dt);
-    private synchronized native void render();
-    private synchronized native void setPosition(double lon, double lat);
-    private synchronized native void getPosition(double[] lonLatOut);
-    private synchronized native void setZoom(float zoom);
-    private synchronized native float getZoom();
-    private synchronized native void setRotation(float radians);
-    private synchronized native float getRotation();
-    private synchronized native void setTilt(float radians);
-    private synchronized native float getTilt();
-    private synchronized native void screenToWorldCoordinates(double[] screenCoords);
-    private synchronized native void setPixelScale(float scale);
-    private synchronized native void handleTapGesture(float posX, float posY);
-    private synchronized native void handleDoubleTapGesture(float posX, float posY);
-    private synchronized native void handlePanGesture(float startX, float startY, float endX, float endY);
-    private synchronized native void handlePinchGesture(float posX, float posY, float scale, float velocity);
-    private synchronized native void handleRotateGesture(float posX, float posY, float rotation);
-    private synchronized native void handleShoveGesture(float distance);
+    // private synchronized native void setupGL();
+    // private synchronized native void resize(int width, int height);
+    // private synchronized native void update(float dt);
+    // private synchronized native void render();
+    // private synchronized native void setPosition(double lon, double lat);
+    // private synchronized native void getPosition(double[] lonLatOut);
+    // private synchronized native void setZoom(float zoom);
+    // private synchronized native float getZoom();
+    // private synchronized native void setRotation(float radians);
+    // private synchronized native float getRotation();
+    // private synchronized native void setTilt(float radians);
+    // private synchronized native float getTilt();
+    // private synchronized native void screenToWorldCoordinates(double[] screenCoords);
+    // private synchronized native void setPixelScale(float scale);
+    // private synchronized native void handleTapGesture(float posX, float posY);
+    // private synchronized native void handleDoubleTapGesture(float posX, float posY);
+    // private synchronized native void handlePanGesture(float startX, float startY, float endX, float endY);
+    // private synchronized native void handlePinchGesture(float posX, float posY, float scale, float velocity);
+    // private synchronized native void handleRotateGesture(float posX, float posY, float rotation);
+    // private synchronized native void handleShoveGesture(float distance);
     private synchronized native void onUrlSuccess(byte[] rawDataBytes, long callbackPtr);
     private synchronized native void onUrlFailure(long callbackPtr);
     public synchronized native void pickFeature(float posX, float posY);
@@ -324,20 +323,20 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
         float delta = (newTime - time) / 1000000000.0f;
         time = newTime;
 
-        update(delta);
-        render();
+        Tangram.update(delta);
+        Tangram.render();
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        setPixelScale(displayMetrics.density);
-        resize(width, height);
+        Tangram.setPixelScale(displayMetrics.density);
+        Tangram.resize(width, height);
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         init(this, assetManager, scenePath);
         // init() is safe to call twice, this invocation ensures that the jni
         // environment is attached to the rendering thread
-        setupGL();
+        Tangram.setupGL();
     }
 
     // GestureDetector.OnDoubleTapListener methods
@@ -357,7 +356,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
         }
         else if(event.getAction() == 1) { // DoubleTap Up; handleDoubleTap zoom-in if not moved (scale happened)
             if(!mDoubleTapScale) {
-                handleDoubleTapGesture(mapView.getWidth() * 0.5f, mapView.getHeight() * 0.5f);
+                Tangram.handleDoubleTapGesture(mapView.getWidth() * 0.5f, mapView.getHeight() * 0.5f);
             }
             mDoubleTapScale = false;
         } else { // DoubleTap down event
@@ -377,7 +376,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
     // ========================================
 
     public boolean onDown(MotionEvent event) {
-        handlePanGesture(0.0f, 0.0f, 0.0f, 0.0f);
+        Tangram.handlePanGesture(0.0f, 0.0f, 0.0f, 0.0f);
         return true;
     }
 
@@ -400,7 +399,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
           y += e2.getY(i) / n;
         }
 
-        handlePanGesture(x + distanceX, y + distanceY, x, y);
+        Tangram.handlePanGesture(x + distanceX, y + distanceY, x, y);
 
         return true;
     }
@@ -450,7 +449,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
             float focusX = mDoubleTapScale ? mapView.getWidth() * 0.5f : detector.getFocusX();
             float focusY = mDoubleTapScale ? mapView.getHeight() * 0.5f : detector.getFocusY();
             mLastDoubleGestureTime = detector.getEventTime();
-            handlePinchGesture(focusX, focusY, detector.getScaleFactor(), velocity);
+            Tangram.handlePinchGesture(focusX, focusY, detector.getScaleFactor(), velocity);
             return true;
         }
         mScaleHandled = false;
@@ -490,7 +489,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
             float x = rotateGestureDetector.getFocusX();
             float y = rotateGestureDetector.getFocusY();
             mLastDoubleGestureTime = detector.getEventTime();
-            handleRotateGesture(x, y, -(rotAngle));
+            Tangram.handleRotateGesture(x, y, -(rotAngle));
             mRotationHandled = true;
             return true;
         }
@@ -522,7 +521,7 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
 
         double diffX = Math.abs(currentSpanX - prevSpanX);
         mLastDoubleGestureTime = detector.getEventTime();
-        handleShoveGesture(detector.getShovePixelsDelta() / displayMetrics.heightPixels);
+        Tangram.handleShoveGesture(detector.getShovePixelsDelta() / displayMetrics.heightPixels);
         return true;
     }
 

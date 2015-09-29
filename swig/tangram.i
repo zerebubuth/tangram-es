@@ -67,6 +67,7 @@ namespace Tangram {
 void initialize(const char* _scenePath);
 void setupGL();
 void resize(int _newWidth, int _newHeight);
+void update(float _dt);
 void render();
 void setPosition(double _lon, double _lat);
 void setZoom(float _z);
@@ -82,6 +83,7 @@ void handleTapGesture(float _posX, float _posY);
 void handlePanGesture(float _startX, float _startY, float _endX, float _endY);
 void handleDoubleTapGesture(float _posX, float _posY);
 void handlePinchGesture(float _posX, float _posY, float _scale, float _velocity);
+void handleRotateGesture(float _posX, float _posY, float _rotation);
 void handleShoveGesture(float _distance);
 
 void addDataSource(std::shared_ptr<Tangram::DataSource> _source);
