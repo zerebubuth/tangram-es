@@ -38,6 +38,9 @@ struct DrawRule {
         _value = param.value.get<T>();
         return true;
     }
+    bool contains(StyleParamKey _key) const {
+        return findParameter(_key) != false;
+    }
 
     bool operator<(const DrawRule& _rhs) const;
     int compare(const DrawRule& _rhs) const { return style.compare(_rhs.style); }
