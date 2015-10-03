@@ -13,6 +13,7 @@
 namespace Tangram {
 
 class FontContext;
+struct Properties;
 
 enum class TextTransform {
     none,
@@ -22,6 +23,11 @@ enum class TextTransform {
 };
 
 struct Parameters {
+    std::string text = "";
+
+    bool interactive = false;
+    std::shared_ptr<Properties> properties;
+
     std::string fontKey = "";
     uint32_t fill = 0xff000000;
     uint32_t strokeColor = 0xffffffff;
@@ -32,10 +38,10 @@ struct Parameters {
     bool visible = true;
     uint32_t priority = std::numeric_limits<uint32_t>::max();
     glm::vec2 offset;
-    struct {
-        bool isFunction = false;
-        std::string text;
-    } textSource;
+
+    bool isValid() {
+        return fontSize > 0.f && !text.empty();
+    }
 };
 
 /*
@@ -49,7 +55,7 @@ public:
     ~TextBuffer();
 
     /* Create and add TextLabel */
-    bool addLabel(const std::string& _text, Label::Transform _transform, Label::Type _type, const Parameters& _params, Label::Options _options);
+    bool addLabel(const Parameters& _params, Label::Transform _transform, Label::Type _type);
 
 private:
 
