@@ -637,7 +637,7 @@ styles:
                     #endif
                 width: |
                     // Comment/Uncomment to fix the line to the border
-                    width *= 1.0-v_texcoord.x;
+                    // width *= 1.0-v_texcoord.x;
                 color: |
                     vec2 st = v_texcoord.xy;
                     float pattern = aastep(.5,pulse(st.x,.8,.25)+pulse(st.x,.5,.12)+pulse(st.x,.1,.1));
