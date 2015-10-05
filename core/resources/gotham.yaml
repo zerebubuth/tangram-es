@@ -221,7 +221,7 @@ styles:
 sources:
     osm:
         type: MVT
-        url:    http://vector.mapzen.com/osm/all/{z}/{x}/{y}.mvt?api_key=vector-tiles-VMSYhD4
+        url: https://vector.mapzen.com/osm/all/{z}/{x}/{y}.mvt
 layers:
     water:
         data: { source: osm }
