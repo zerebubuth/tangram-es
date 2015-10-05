@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main);
 
         mapView = (MapView)findViewById(R.id.map);
-        mapController = new MapController(this, mapView);
+        mapController = new MapController(this, mapView, "eraser-map.yaml");
         mapController.setMapZoom(16);
         mapController.setMapPosition(-74.00976419448854, 40.70532700869127);
 
