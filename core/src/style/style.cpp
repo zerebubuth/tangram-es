@@ -1,7 +1,6 @@
 #include "style.h"
 
 #include "scene/scene.h"
-#include "scene/sceneLayer.h"
 #include "scene/light.h"
 #include "tile/tile.h"
 #include "gl/vboMesh.h"
