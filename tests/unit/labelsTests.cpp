@@ -46,6 +46,7 @@ TEST_CASE("Test getFeaturesAtPoint", "[Labels][FeaturePicking]") {
     labelMesh->addLabel(makeLabel(glm::vec2{1,1}, Label::Type::point, "2"));
 
     std::shared_ptr<Tile> tile(new Tile({0,0,0}, view.getMapProjection()));
+    tile->initGeometry(1);
     tile->getMesh(*textStyle.get()) = std::move(labelMesh);
     tile->update(0, view);
 
