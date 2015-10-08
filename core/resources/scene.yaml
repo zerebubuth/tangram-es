@@ -57,10 +57,10 @@ sources:
         url:  http://opensciencemap.org/tiles/vtm/{z}/{x}/{y}.vtm
         #url:  http://localhost/~jeff/tilecache/{z}/{x}/{y}
 
-    s3db:
-        type: VTM3D
-        url:  http://opensciencemap.org/tiles/s3db/{z}/{x}/{y}.vtm
-        #url:  http://localhost/~jeff/s3dbcache/{z}/{x}/{y}
+    # s3db:
+    #     type: VTM3D
+    #     url:  http://opensciencemap.org/tiles/s3db/{z}/{x}/{y}.vtm
+    #     #url:  http://localhost/~jeff/s3dbcache/{z}/{x}/{y}
 
 layers:
     touch:
@@ -209,16 +209,6 @@ layers:
     poi_icons:
         data: { source: osm, layer: pois }
         filter: { name: true, not: { kind: [peak, viewpoint, bicycle_rental, car_sharing] }, $zoom: { min: 15 } }
-    s3db:
-        data: { source: s3db }
-        draw:
-            icons:
-                interactive: true
-                offset: [0px, -15px]
-                size: 20px
-                priority: 5
-                #size: [[13, 12px], [15, 18px]]
-                #interactive: true
 
         # add generic icon at high zoom
         generic:
@@ -259,34 +249,33 @@ layers:
                 filter: { kind: [bookstore] }
                 draw: { icons: { sprite: bookstore } }
 
-#    buildings:
-#        data: { source: osm }
-#        filter: { $zoom: { min: 14 } }
-#        draw:
-#            polygons:
-#                order: 50
-#                color: [.65, .65, .65]
-#        # turn interactive feature selection on for buildings with names
-#        interactive:
-#            filter: { name: true }
-#            draw: { heightglow: { interactive: true } }
-#        extruded:
-#            filter: { $zoom: { min: 15 } }
-#            draw:
-#                heightglow:
-#                    extrude: true
-#        high-line:
-#            filter: {roof_material: grass}
-#            draw:
-#                heightglow:
-#                    color: '#bddec5'
+    buildings:
+       data: { source: osm }
+       lowzoom:
+         filter: { $zoom: { min: 13, max: 14 } }
+         draw:
+           polygons:
+             order: 10
+             color: [.65, .65, .65]
+       extruded:
+           filter: { $zoom: { min: 15 } }
+           draw:
+               heightglow:
+                   order: 10
+                   color: [.65, .65, .65]
+                   extrude: true
+       high-line:
+           filter: {roof_material: grass}
+           draw:
+               heightglow:
+                   color: '#bddec5'
 
-    s3db:
-        data: { source: s3db }
-        draw:
-            polygons:
-                order: 50
-                color: [.65, .65, .65]
+    # s3db:
+    #     data: { source: s3db }
+    #     draw:
+    #         polygons:
+    #             order: 50
+    #             color: [.65, .65, .65]
 
     poi_labels:
         data: { source: osm, layer: pois }

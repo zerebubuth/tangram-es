@@ -813,7 +813,7 @@ void SceneLoader::loadSource(const std::pair<Node, Node>& src, Scene& _scene) {
     } else if (type == "MVT") {
         sourcePtr = std::shared_ptr<DataSource>(new MVTSource(name, url));
     } else if (type == "VTM") {
-        sourcePtr = std::shared_ptr<DataSource>(new VTMSource(0, 16, false, name, url));
+        sourcePtr = std::shared_ptr<DataSource>(new VTMSource(0, 18, false, name, url));
     } else if (type == "VTM3D") {
         sourcePtr = std::shared_ptr<DataSource>(new VTMSource(16, 16, true, name, url));
     } else {
