@@ -41,6 +41,9 @@ Tile::~Tile() {
 
 void Tile::build(StyleContext& _ctx, const Scene& _scene, const TileData& _data, const DataSource& _source) {
 
+    // Initialize m_geometry
+    m_geometry.resize(_scene.styles().size());
+
     const auto& layers = _scene.layers();
 
     _ctx.setGlobalZoom(m_id.z);
@@ -83,7 +86,9 @@ void Tile::build(StyleContext& _ctx, const Scene& _scene, const TileData& _data,
     }
 
     for (auto& geometry : m_geometry) {
-        geometry.second->compileVertexBuffer();
+        if (geometry) {
+            geometry->compileVertexBuffer();
+        }
     }
 }
 
@@ -98,7 +103,7 @@ void Tile::update(float _dt, const View& _view) {
 
 void Tile::draw(const Style& _style, const View& _view) {
 
-    const auto& styleMesh = m_geometry[_style.getName()];
+    const auto& styleMesh = m_geometry[_style.getID()];
 
     if (styleMesh) {
 
@@ -119,14 +124,14 @@ void Tile::draw(const Style& _style, const View& _view) {
 }
 
 std::unique_ptr<VboMesh>& Tile::getMesh(const Style& _style) {
-    return m_geometry[_style.getName()];
+    return m_geometry[_style.getID()];
 }
 
 size_t Tile::getMemoryUsage() const {
     if (m_memoryUsage == 0) {
         for (auto& entry : m_geometry) {
-            if (entry.second) {
-                m_memoryUsage += entry.second->bufferSize();
+            if (entry) {
+                m_memoryUsage += entry->bufferSize();
             }
         }
     }
