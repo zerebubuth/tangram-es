@@ -39,10 +39,14 @@ Tile::~Tile() {
 
 }
 
+void Tile::initGeometry(uint32_t _size) {
+    m_geometry.resize(_size);
+}
+
 void Tile::build(StyleContext& _ctx, const Scene& _scene, const TileData& _data, const DataSource& _source) {
 
     // Initialize m_geometry
-    m_geometry.resize(_scene.styles().size());
+    initGeometry(_scene.styles().size());
 
     const auto& layers = _scene.layers();
 

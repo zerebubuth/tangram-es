@@ -55,6 +55,9 @@ public:
 
     const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
 
+    // Exposing for labelsTest
+    void initGeometry(uint32_t _size);
+
     std::unique_ptr<VboMesh>& getMesh(const Style& _style);
 
     /* uUdate the Tile considering the current view */
