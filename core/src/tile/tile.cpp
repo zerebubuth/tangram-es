@@ -42,7 +42,14 @@ Tile::~Tile() {
 
 }
 
+void Tile::initGeometry(uint32_t _size) {
+    m_geometry.resize(_size);
+}
+
 void Tile::build(StyleContext& _ctx, const Scene& _scene, const TileData& _data, const DataSource& _source) {
+
+    // Initialize m_geometry
+    initGeometry(_scene.styles().size());
 
     const auto& layers = _scene.layers();
 
@@ -86,7 +93,9 @@ void Tile::build(StyleContext& _ctx, const Scene& _scene, const TileData& _data,
     }
 
     for (auto& geometry : m_geometry) {
-        geometry.second->compileVertexBuffer();
+        if (geometry) {
+            geometry->compileVertexBuffer();
+        }
     }
 }
 
@@ -101,8 +110,8 @@ void Tile::update(float _dt, const View& _view) {
 
 void Tile::reset() {
     for (auto& entry : m_geometry) {
-        if (!entry.second) { continue; }
-        auto labelMesh = dynamic_cast<LabelMesh*>(entry.second.get());
+        if (!entry) { continue; }
+        auto labelMesh = dynamic_cast<LabelMesh*>(entry.get());
         if (!labelMesh) { continue; }
         labelMesh->reset();
     }
@@ -110,7 +119,7 @@ void Tile::reset() {
 
 void Tile::draw(const Style& _style, const View& _view) {
 
-    const auto& styleMesh = m_geometry[_style.getName()];
+    const auto& styleMesh = m_geometry[_style.getID()];
 
     if (styleMesh) {
 
@@ -128,14 +137,14 @@ void Tile::draw(const Style& _style, const View& _view) {
 }
 
 std::unique_ptr<VboMesh>& Tile::getMesh(const Style& _style) {
-    return m_geometry[_style.getName()];
+    return m_geometry[_style.getID()];
 }
 
 size_t Tile::getMemoryUsage() const {
     if (m_memoryUsage == 0) {
         for (auto& entry : m_geometry) {
-            if (entry.second) {
-                m_memoryUsage += entry.second->bufferSize();
+            if (entry) {
+                m_memoryUsage += entry->bufferSize();
             }
         }
     }
