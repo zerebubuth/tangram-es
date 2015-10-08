@@ -13,6 +13,7 @@ import android.view.ScaleGestureDetector;
 import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.util.Log;
 
 import com.almeros.android.multitouch.RotateGestureDetector;
 import com.almeros.android.multitouch.RotateGestureDetector.OnRotateGestureListener;
@@ -267,8 +268,8 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
     private synchronized native void handlePinchGesture(float posX, float posY, float scale, float velocity);
     private synchronized native void handleRotateGesture(float posX, float posY, float rotation);
     private synchronized native void handleShoveGesture(float distance);
-    private synchronized native void onUrlSuccess(byte[] rawDataBytes, long callbackPtr);
-    private synchronized native void onUrlFailure(long callbackPtr);
+    private native void onUrlSuccess(byte[] rawDataBytes, long callbackPtr);
+    private native void onUrlFailure(long callbackPtr);
     public synchronized native void pickFeature(float posX, float posY);
 
     // Private members
@@ -557,18 +558,21 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
         if (httpHandler == null) {
             return false;
         }
+
         httpHandler.onRequest(url, new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
                 onUrlFailure(callbackPtr);
-                e.printStackTrace();
+                Log.d("tangram", e.getMessage());
             }
 
             @Override
             public void onResponse(Response response) throws IOException {
                 if (!response.isSuccessful()) {
                     onUrlFailure(callbackPtr);
-                    throw new IOException("Unexpected response code: " + response);
+                    Log.d("tangram", "Unexpected response code: " + response);
+                    return;
+                    //throw new IOException("Unexpected response code: " + response);
                 }
                 BufferedSource source = response.body().source();
                 byte[] bytes = source.readByteArray();
