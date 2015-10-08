@@ -90,13 +90,13 @@ public class MainActivity extends Activity {
         HttpHandler handler = new HttpHandler() {
             @Override
             public boolean onRequest(String url, Callback cb) {
-                url += tileApiKey;
+                //url += tileApiKey;
                 return super.onRequest(url, cb);
             }
 
             @Override
             public void onCancel(String url) {
-                url += tileApiKey;
+                //url += tileApiKey;
                 super.onCancel(url);
             }
         };

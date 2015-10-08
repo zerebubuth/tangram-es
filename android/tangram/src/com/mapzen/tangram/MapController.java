@@ -13,6 +13,7 @@ import android.view.ScaleGestureDetector;
 import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.util.Log;
 
 import com.almeros.android.multitouch.RotateGestureDetector;
 import com.almeros.android.multitouch.RotateGestureDetector.OnRotateGestureListener;
@@ -24,6 +25,7 @@ import com.squareup.okhttp.Response;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -267,8 +269,8 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
     private synchronized native void handlePinchGesture(float posX, float posY, float scale, float velocity);
     private synchronized native void handleRotateGesture(float posX, float posY, float rotation);
     private synchronized native void handleShoveGesture(float distance);
-    private synchronized native void onUrlSuccess(byte[] rawDataBytes, long callbackPtr);
-    private synchronized native void onUrlFailure(long callbackPtr);
+    private native void onUrlSuccess(byte[] rawDataBytes, long callbackPtr);
+    private native void onUrlFailure(long callbackPtr);
     public synchronized native void pickFeature(float posX, float posY);
 
     // Private members
@@ -552,16 +554,54 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
         }
         httpHandler.onCancel(url);
     }
+    class Pair{
+        public Pair(String url) {
+            this.url = url;
+        }
+        public long start = System.currentTimeMillis();
+        public String url;
+        public boolean equals(Object o) {
+            if (o instanceof String) {
+                return ((String)o).equals(url);
+            }
+            return ((Pair)o).url.equals(url);
+        }
+        public String toString() {
+            return "took: " + (System.currentTimeMillis() - start) + " / " + url;
+        }
+        
+    }
+    
+    final ArrayList<Pair> requests = new ArrayList<Pair>();
 
     public boolean startUrlRequest(String url, final long callbackPtr) throws Exception {
         if (httpHandler == null) {
             return false;
         }
+        synchronized(requests) {
+            //Log.d("tangram", "add " + url);
+            requests.add(new Pair(url));
+        }        
         httpHandler.onRequest(url, new Callback() {
             @Override
             public void onFailure(Request request, IOException e) {
                 onUrlFailure(callbackPtr);
-                e.printStackTrace();
+                if (!"Canceled".equals(e.getMessage()) &&
+                    !(e instanceof java.io.EOFException)) {
+                    e.printStackTrace();
+                }
+                synchronized(requests) {
+                    //requests.remove(request.urlString());
+                    //Log.d("tangram", "canceled " + request.urlString());
+                    for (Pair p : requests) {
+                        if (p.url.equals(request.urlString())) {
+                            requests.remove(p);
+                            Log.d("tangram", p.toString() + " : Canceled");
+                            break;
+                        }
+                    }
+
+                }
             }
 
             @Override
@@ -570,9 +610,30 @@ public class MapController implements Renderer, OnTouchListener, OnScaleGestureL
                     onUrlFailure(callbackPtr);
                     throw new IOException("Unexpected response code: " + response);
                 }
+                long t = System.currentTimeMillis();
+                
                 BufferedSource source = response.body().source();
                 byte[] bytes = source.readByteArray();
                 onUrlSuccess(bytes, callbackPtr);
+                synchronized(requests) {
+                    //requests.remove(response.request().urlString());
+                    Log.d("tangram", "received "
+                          + response.request().urlString()
+                          + " / " + requests.size()
+                          + " / " + response.cacheControl().toString());
+
+                    for (Pair p : requests) {
+                        if (p.url.equals(response.request().urlString())) {
+                            requests.remove(p);
+                            Log.d("tangram", p.toString()
+                                  + " :  OK "
+                                  + (System.currentTimeMillis() - t)
+                                  + " : " + (bytes.length / (1024 * 1024.0f)) + " MB");
+                            break;
+                        }
+                    }
+                }
+
             }
         });
         return true;
