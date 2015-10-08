@@ -39,6 +39,7 @@ TEST_CASE("Test getFeaturesAtPoint", "[Labels][FeaturePicking]") {
 
     auto labelMesh = std::unique_ptr<LabelMesh>(new LabelMesh(nullptr, 0));
     auto textStyle = std::unique_ptr<TextStyle>(new TextStyle("test", nullptr));
+    textStyle->setID(0);
 
     labelMesh->addLabel(makeLabel(glm::vec2{0,0}, Label::Type::point, "0"));
     labelMesh->addLabel(makeLabel(glm::vec2{1,-1}, Label::Type::point, "1"));
