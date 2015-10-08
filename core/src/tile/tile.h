@@ -7,7 +7,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include <atomic>
 
@@ -55,7 +54,7 @@ public:
     float getInverseScale() const { return m_inverseScale; }
 
     const glm::mat4& getModelMatrix() const { return m_modelMatrix; }
-    
+
     std::unique_ptr<VboMesh>& getMesh(const Style& _style);
 
     /* uUdate the Tile considering the current view */
@@ -65,8 +64,8 @@ public:
     void draw(const Style& _style, const View& _view);
 
     void build(StyleContext& _ctx, const Scene& _scene, const TileData& _data, const DataSource& _source);
-    
-    /* 
+
+    /*
      * Methods to set and get proxy counter
      */
     int getProxyCounter() { return m_proxyCounter; }
@@ -174,7 +173,7 @@ private:
     // Distances from the global origin are too large to represent precisely in 32-bit floats, so we only apply the
     // relative translation from the view origin to the model origin immediately before drawing the tile.
 
-    std::unordered_map<std::string, std::unique_ptr<VboMesh>> m_geometry; // Map of <Style>s and their associated <VboMesh>es
+    std::vector<std::unique_ptr<VboMesh>> m_geometry; // Map of <Style>s and their associated <VboMesh>es
 
     mutable size_t m_memoryUsage = 0;
 };
