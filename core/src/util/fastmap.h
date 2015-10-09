@@ -63,24 +63,28 @@ struct fastmap {
 
 template<typename T>
 struct fastmap<std::string, T> {
+    struct Key {
+        size_t hash;
+        std::string k;
+    };
 
-    std::vector<std::pair<std::string, T>> map;
+    std::vector<std::pair<Key, T>> map;
     std::vector<size_t> lengths;
 
     T& operator[](const std::string& key) {
 
+        size_t hash = key.size();
         const auto it = std::lower_bound(
             map.begin(), map.end(), key,
-            [](const auto& item, const auto& key) {
-                int d = item.first.size() - key.size();
-                if (d == 0) {
-                    return item.first < key;
+            [&](const auto& item, const auto& key) {
+                if (item.first.hash == hash) {
+                    return item.first.k < key;
                 }
-                return d < 0;
+                return item.first.hash < hash;
             });
 
-        if (it == map.end() || it->first != key) {
-            auto entry = map.emplace(it, key, T{});
+        if (it == map.end() || it->first.k != key) {
+            auto entry = map.emplace(it, Key{hash, key}, T{});
             return entry->second;
         }
 
@@ -88,17 +92,17 @@ struct fastmap<std::string, T> {
     }
 
     auto find(const std::string& key) const {
+        size_t hash = key.size();
         const auto it = std::lower_bound(
             map.begin(), map.end(), key,
-            [](const auto& item, const auto& key) {
-                int d = item.first.size() - key.size();
-                if (d == 0) {
-                    return item.first < key;
+            [&](const auto& item, const auto& key) {
+                if (item.first.hash == hash) {
+                    return item.first.k < key;
                 }
-                return d < 0;
+                return item.first.hash < hash;
             });
 
-        if (it == map.end() || it->first == key) {
+        if (it == map.end() || it->first.k == key) {
             return it;
         }
         return map.end();

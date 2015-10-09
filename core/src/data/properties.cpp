@@ -29,7 +29,9 @@ const Value& Properties::get(const std::string& key) const {
 
     const auto it = std::lower_bound(props.begin(), props.end(), key,
                                      [](const auto& item, const auto& key) {
-                                         return item.key < key;
+                                         if (item.key.size() == key.size())
+                                             return item.key < key;
+                                         return item.key.size() < key.size();
                                      });
 
     if (it == props.end() || it->key != key) {
@@ -101,8 +103,16 @@ std::string Properties::getAsString(const std::string& key) const {
 
 }
 
+// void Properties::sort() {
+//     std::sort(props.begin(), props.end());
+// }
 void Properties::sort() {
-    std::sort(props.begin(), props.end());
+    std::sort(props.begin(), props.end(),
+              [](const auto& a, const auto& b) {
+                  if (a.key.size() == b.key.size())
+                      return a.key < b.key;
+                  return a.key.size() < b.key.size();
+              });
 }
 
 void Properties::add(std::string key, std::string value) {
