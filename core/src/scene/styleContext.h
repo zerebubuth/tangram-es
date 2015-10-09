@@ -3,10 +3,10 @@
 #include "duktape.h"
 #include "tileData.h"
 #include "scene/drawRule.h"
+#include "util/fastmap.h"
 
 #include <string>
 #include <functional>
-#include <unordered_map>
 
 namespace Tangram {
 
@@ -61,9 +61,9 @@ private:
         StyleContext* ctx;
     };
 
-    std::unordered_map<std::string, Accessor> m_accessors;
+    fastmap<std::string, Accessor> m_accessors;
 
-    std::unordered_map<std::string, Value> m_globals;
+    fastmap<std::string, Value> m_globals;
 
     int32_t m_sceneId = -1;
 

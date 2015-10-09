@@ -2,8 +2,9 @@
 
 #include "gl.h"
 
+#include "util/fastmap.h"
+
 #include <vector>
-#include <unordered_map>
 #include <memory>
 #include <string>
 
@@ -12,7 +13,7 @@ namespace Tangram {
 class ShaderProgram;
 
 class VertexLayout {
-    
+
 public:
 
     struct VertexAttrib {
@@ -30,12 +31,13 @@ public:
     void enable(ShaderProgram& _program, size_t byteOffset, void* _ptr = nullptr);
 
     GLint getStride() const { return m_stride; };
-    
+
     size_t getOffset(std::string _attribName);
 
 private:
 
-    static std::unordered_map<GLint, GLuint> s_enabledAttribs; // Map from attrib locations to bound shader program
+    //static std::unordered_map<GLint, GLuint> s_enabledAttribs; // Map from attrib locations to bound shader program
+    static fastmap<GLint, GLuint> s_enabledAttribs; // Map from attrib locations to bound shader program
 
     std::vector<VertexAttrib> m_attribs;
     GLint m_stride;

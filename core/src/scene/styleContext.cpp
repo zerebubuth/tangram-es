@@ -347,17 +347,20 @@ bool StyleContext::evalStyleFn(const std::string& name, StyleParamKey _key, Styl
 
 void StyleContext::addAccessor(const std::string& _name) {
 
-    auto it = m_accessors.find(_name);
-    if (it != m_accessors.end()) {
-        return;
-    }
+    // auto it = m_accessors.find(_name);
+    // if (it != m_accessors.end()) {
+    //     return;
+    // }
+    // auto entry = m_accessors.emplace(_name, Accessor{_name, this});
+    // if (!entry.second) {
+    //     return; // hmm, already added..
+    // }
+    Accessor& attr = m_accessors[_name];
+    if (attr.ctx != nullptr) { return; }
 
-    auto entry = m_accessors.emplace(_name, Accessor{_name, this});
-    if (!entry.second) {
-        return; // hmm, already added..
-    }
+    attr.ctx = this;
 
-    Accessor& attr = (*entry.first).second;
+    //Accessor& attr = (*entry.first).second;
 
     // push 'feature' obj onto stack
     if (!duk_get_global_string(m_ctx, "feature")) {
