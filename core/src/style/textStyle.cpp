@@ -6,10 +6,12 @@
 #include "gl/vboMesh.h"
 #include "view/view.h"
 #include "labels/textLabel.h"
-#include "glm/gtc/type_ptr.hpp"
 #include "tangram.h"
 #include "text/fontContext.h"
 #include "data/propertyItem.h" // Include wherever Properties is used!
+
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/norm.hpp"
 
 namespace Tangram {
 
@@ -129,7 +131,14 @@ void TextStyle::buildLine(const Line& _line, const DrawRule& _rule, const Proper
 
     if (!params.visible || !params.isValid()) { return; }
 
+    const float maxPixel = 2.0f / 512.0f;
+    const float minLen = maxPixel * 40;
+    const float minLenSq = minLen * minLen;
+
     for (size_t i = 0; i < _line.size() - 1; i++) {
+         if (glm::length2(_line[i] - _line[i + 1]) < minLenSq) {
+            continue;
+        }
         glm::vec2 p1 = glm::vec2(_line[i]);
         glm::vec2 p2 = glm::vec2(_line[i + 1]);
 
