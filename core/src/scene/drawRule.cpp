@@ -9,7 +9,7 @@ namespace Tangram {
 
 const StyleParam NONE;
 
-DrawRule::DrawRule(const std::string& _name, const std::string& _style, const std::vector<StyleParam>& _parameters,
+DrawRule::DrawRule(int _name, int _style, const std::vector<StyleParam>& _parameters,
                    bool _sorted) :
     name(_name),
     style(_style),
