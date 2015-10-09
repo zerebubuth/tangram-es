@@ -61,14 +61,6 @@ bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _scree
             glm::vec2 p1 = clipToScreenSpace(v1, _screenSize);
             glm::vec2 p2 = clipToScreenSpace(v2, _screenSize);
 
-            rot = angleBetweenPoints(p1, p2) + M_PI_2;
-
-            if (rot > M_PI_2 || rot < -M_PI_2) { // un-readable labels
-                rot += M_PI;
-            } else {
-                std::swap(p1, p2);
-            }
-
             glm::vec2 p1p2 = p2 - p1;
             glm::vec2 t = glm::normalize(-p1p2);
 
@@ -81,6 +73,15 @@ bool Label::updateScreenTransform(const glm::mat4& _mvp, const glm::vec2& _scree
                 if (exceed > exceedHeuristic) {
                     return false;
                 }
+            }
+
+            rot = angleBetweenPoints(p1, p2) + M_PI_2;
+
+            if (rot > M_PI_2 || rot < -M_PI_2) { // un-readable labels
+                rot += M_PI;
+            } else {
+                std::swap(p1, p2);
+                t = -t;
             }
 
             screenPosition = (p1 + p2) * 0.5f + t * m_dim.x * 0.5f;
@@ -179,8 +180,8 @@ void Label::pushTransform() {
 
     // update the buffer on valid states
     if (m_dirty) {
-        static size_t attribOffset = offsetof(Label::Vertex, state);
-        static size_t alphaOffset = offsetof(Label::Vertex::State, alpha) + attribOffset;
+        static constexpr size_t attribOffset = offsetof(Label::Vertex, state);
+        static constexpr size_t alphaOffset = offsetof(Label::Vertex::State, alpha) + attribOffset;
 
         if (visibleState()) {
             // update the complete state on the mesh

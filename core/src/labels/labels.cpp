@@ -29,11 +29,12 @@ void Labels::update(const View& _view, float _dt, const std::vector<std::unique_
     // int lodDiscard = LODDiscardFunc(View::s_maxZoom, zoom);
     // LOG("loddiscard %f %d", zoom, lodDiscard);
 
-    std::set<std::pair<Label*, Label*>> occlusions;
+    //std::set<std::pair<Label*, Label*>> occlusions;
 
     // Could clear this at end of function unless debug draw is active
     m_labels.clear();
     m_aabbs.clear();
+    m_occlusions.clear();
 
     glm::vec2 screenSize = glm::vec2(_view.getWidth(), _view.getHeight());
 
@@ -82,10 +83,11 @@ void Labels::update(const View& _view, float _dt, const std::vector<std::unique_
         auto l1 = static_cast<Label*>(aabb1.m_userData);
         auto l2 = static_cast<Label*>(aabb2.m_userData);
 
-        if (intersect(l1->getOBB(), l2->getOBB())) { occlusions.insert({l1, l2}); }
+        //if (intersect(l1->getOBB(), l2->getOBB())) { occlusions.insert({l1, l2}); }
+        if (intersect(l1->getOBB(), l2->getOBB())) { m_occlusions.push_back({l1, l2}); }
     }
 
-    for (auto& pair : occlusions) {
+    for (auto& pair : m_occlusions) {
         if (!pair.first->occludedLastFrame() || !pair.second->occludedLastFrame()) {
             // lower numeric priority means higher priority
             if (pair.first->getOptions().priority < pair.second->getOptions().priority) {
