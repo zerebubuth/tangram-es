@@ -1,6 +1,7 @@
 #include "propertyItem.h"
 #include "properties.h"
 #include <algorithm>
+#include <cstring>
 
 namespace Tangram {
 
@@ -27,12 +28,15 @@ Properties& Properties::operator=(Properties&& _other) {
 const Value& Properties::get(const std::string& key) const {
     const static Value NOT_FOUND(none_type{});
 
-    const auto it = std::lower_bound(props.begin(), props.end(), key,
-                                     [](const auto& item, const auto& key) {
-                                         if (item.key.size() == key.size())
-                                             return item.key < key;
-                                         return item.key.size() < key.size();
-                                     });
+    const auto it = std::lower_bound(
+        props.begin(), props.end(), key,
+        [](const auto& item, const auto& key) {
+            if (item.key.size() == key.size())
+                return std::memcmp(item.key.data(),
+                                   key.data(),
+                                   key.size()) < 0;
+            return item.key.size() < key.size();
+        });
 
     if (it == props.end() || it->key != key) {
         return NOT_FOUND;
@@ -110,7 +114,7 @@ void Properties::sort() {
     std::sort(props.begin(), props.end(),
               [](const auto& a, const auto& b) {
                   if (a.key.size() == b.key.size())
-                      return a.key < b.key;
+                      return std::memcmp(a.key.data(), b.key.data(), b.key.size()) < 0;
                   return a.key.size() < b.key.size();
               });
 }
