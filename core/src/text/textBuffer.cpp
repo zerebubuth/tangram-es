@@ -91,9 +91,13 @@ bool TextBuffer::addLabel(const Parameters& _params, Label::Transform _transform
         return false;
     }
 
-    auto& vertices = m_vertices[0];
-    int vertexOffset = vertices.size();
+
+    int vertexOffset = m_nVertices;
     int numVertices = numGlyphs * 4;
+    m_vertices.emplace_back();
+
+    auto& vertices = m_vertices.back();
+    vertices.reserve(numVertices);
 
     float inf = std::numeric_limits<float>::infinity();
     float x0 = inf, x1 = -inf, y0 = inf, y1 = -inf;
@@ -126,7 +130,7 @@ bool TextBuffer::addLabel(const Parameters& _params, Label::Transform _transform
                                         { vertexOffset, numVertices }, options));
 
     // TODO: change this in TypeMesh::adVertices()
-    m_nVertices = vertices.size();
+    m_nVertices += vertices.size();
 
     return true;
 }
