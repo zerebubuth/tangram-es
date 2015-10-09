@@ -70,10 +70,7 @@ void StyleContext::initFunctions(const Scene& _scene) {
 
 void StyleContext::setFeature(const Feature& _feature) {
     m_feature = &_feature;
-
-    for (auto& item : _feature.props.items()) {
-        addAccessor(item.key);
-    }
+    m_featureIsReady = false;
 }
 
 void StyleContext::setGlobalZoom(float _zoom) {
@@ -130,12 +127,15 @@ bool StyleContext::addFunction(const std::string& _name, const std::string& _fun
     // Put function in global scope
     duk_put_global_string(m_ctx, _name.c_str());
 
-
     DUMP("addFunction\n");
     return true;
 }
 
 bool StyleContext::evalFilter(FunctionID _id) const {
+    if (!m_featureIsReady) {
+        setAccessors();
+    }
+
     if (!duk_get_global_string(m_ctx, FUNC_ID)) {
         LOGE("EvalFilterFn - functions not initialized");
         return false;
@@ -165,6 +165,10 @@ bool StyleContext::evalFilter(FunctionID _id) const {
 }
 
 bool StyleContext::evalFilterFn(const std::string& _name) {
+    if (!m_featureIsReady) {
+        setAccessors();
+    }
+
     if (!duk_get_global_string(m_ctx, _name.c_str())) {
         LOGE("EvalFilter %s", _name.c_str());
         return false;
@@ -307,6 +311,10 @@ bool StyleContext::parseStyleResult(StyleParamKey _key, StyleParam::Value& _val)
 }
 
 bool StyleContext::evalStyle(FunctionID _id, StyleParamKey _key, StyleParam::Value& _val) const {
+    if (!m_featureIsReady) {
+        setAccessors();
+    }
+
     if (!duk_get_global_string(m_ctx, FUNC_ID)) {
         LOGE("EvalFilterFn - functions array not initialized");
         return false;
@@ -330,6 +338,10 @@ bool StyleContext::evalStyle(FunctionID _id, StyleParamKey _key, StyleParam::Val
 
 
 bool StyleContext::evalStyleFn(const std::string& name, StyleParamKey _key, StyleParam::Value& _val) {
+    if (!m_featureIsReady) {
+        setAccessors();
+    }
+
     if (!duk_get_global_string(m_ctx, name.c_str())) {
         LOGE("EvalFilter %s", name.c_str());
         return false;
@@ -345,7 +357,14 @@ bool StyleContext::evalStyleFn(const std::string& name, StyleParamKey _key, Styl
 }
 
 
-void StyleContext::addAccessor(const std::string& _name) {
+void StyleContext::setAccessors() const {
+    m_featureIsReady = true;
+    for (auto& item : m_feature->props.items()) {
+        addAccessor(item.key);
+    }
+}
+
+void StyleContext::addAccessor(const std::string& _name) const {
 
     // auto it = m_accessors.find(_name);
     // if (it != m_accessors.end()) {
