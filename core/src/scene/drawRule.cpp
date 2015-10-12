@@ -34,14 +34,14 @@ DrawRule DrawRule::merge(DrawRule& _other) const {
         } else if (*otherIt < *myIt) {
             merged.push_back(std::move(*otherIt++));
         } else {
-            merged.push_back(*otherIt++);
-            myIt++;
+            merged.push_back(*myIt++);
+            otherIt++;
         }
     }
     while (myIt != myEnd) { merged.push_back(*myIt++); }
     while (otherIt != otherEnd) { merged.push_back(std::move(*otherIt++)); }
 
-    return { name, _other.style, merged, true };
+    return { name, style, merged, true };
 }
 
 std::string DrawRule::toString() const {
