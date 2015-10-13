@@ -60,6 +60,10 @@ static const char* keyName(StyleParamKey key) {
     return empty.c_str();
 }
 
+std::string StyleParam::getKeyName(StyleParamKey key) {
+    return keyName(key);
+}
+
 static int parseInt(const std::string& _str, int& _value) {
     try {
         size_t index;
