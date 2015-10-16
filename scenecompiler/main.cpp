@@ -1,8 +1,11 @@
 #include "glsl_optimizer.h"
 #include "platform.h"
 #include "scene/sceneLoader.h"
+#include "scene/styleContext.h"
 #include "scene/scene.h"
+#include "scene/dataLayer.h"
 #include "style/style.h"
+#include "gl/shaderProgram.h"
 
 #include <fstream>
 #include <algorithm>
