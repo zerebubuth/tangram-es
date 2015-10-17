@@ -15,16 +15,11 @@ include_directories(${PROJECT_SOURCE_DIR}/${INCLUDE_DIR})
 add_library(geojson-vt-cpp ${GEOJSON_VT_CPP_SOURCES})
 target_include_directories(geojson-vt-cpp
   PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/geojson-vt-cpp/include
-)
+  ${CMAKE_CURRENT_SOURCE_DIR}/geojson-vt-cpp/include)
 
-# yaml-cpp #
-############
-
-set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Enable testing and parse tools")
-set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "Enable contrib stuff in library")
-add_subdirectory("yaml-cpp")
-
+target_compile_options(geojson-vt-cpp
+  PUBLIC
+  -Wno-unknown-pragmas)
 
 # duktape #
 ############
