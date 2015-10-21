@@ -90,12 +90,14 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
     const static std::string key_height("height");
     const static std::string key_min_height("min_height");
 
-    PolygonBuilder builder = {
-        [&](const glm::vec3& coord, const glm::vec3& normal, const glm::vec2& uv){
-            vertices.push_back({ coord, normal, uv, abgr, layer });
-        },
-        [&](size_t sizeHint){ vertices.reserve(sizeHint); }
+    auto fnAddVertex =[&](const glm::vec3& coord,
+                          const glm::vec3& normal,
+                          const glm::vec2& uv) {
+        vertices.push_back({ coord, normal, uv, abgr, layer });
     };
+    auto fnSizeHint = [&](size_t sizeHint){ vertices.reserve(sizeHint); };
+
+    PolygonBuilder builder{};
 
     auto& mesh = static_cast<Mesh&>(_mesh);
 
@@ -115,14 +117,15 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
             height = extrude[1];
         }
 
-        Builders::buildPolygonExtrusion(_polygon, minHeight, height, builder);
+        Builders::buildPolygonExtrusion(_polygon, minHeight, height, builder,
+                                        fnAddVertex, fnSizeHint);
         mesh.addVertices(std::move(vertices), std::move(builder.indices));
 
         // TODO add builder.clear() ?;
         builder.numVertices = 0;
     }
 
-    Builders::buildPolygon(_polygon, height, builder);
+    Builders::buildPolygon(_polygon, height, builder, fnAddVertex, fnSizeHint);
     mesh.addVertices(std::move(vertices), std::move(builder.indices));
 }
 

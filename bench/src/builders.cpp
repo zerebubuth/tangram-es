@@ -25,7 +25,7 @@ struct PosNormEnormColVertex {
     GLuint abgr;
     GLfloat layer;
 };
-
+#if 0
 static void BM_Tangram_BuildButtMiterLine(benchmark::State& state) {
     while(state.KeepRunning()) {
         std::vector<PosNormEnormColVertex> vertices;
@@ -59,5 +59,6 @@ static void BM_Tangram_BuildRoundRoundLine(benchmark::State& state) {
     }
 }
 BENCHMARK(BM_Tangram_BuildRoundRoundLine);
+#endif
 
 BENCHMARK_MAIN();

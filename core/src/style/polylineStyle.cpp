@@ -197,17 +197,19 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
         } else { height = extrude[1]; }
     }
 
-    PolyLineBuilder builder {
-        [&](const glm::vec3& coord, const glm::vec2& normal, const glm::vec2& uv) {
+    auto fnAddVertex = [&](const glm::vec3& coord, const glm::vec2& normal, const glm::vec2& uv) {
             glm::vec4 extrude = { normal.x, normal.y, width, dWdZ };
-            vertices.push_back({ {coord.x, coord.y, height}, uv, extrude, abgr, (float)params.order });
-        },
-        [&](size_t sizeHint){ vertices.reserve(sizeHint); },
+            vertices.push_back({ {coord.x, coord.y, height}, uv, extrude, abgr, float(params.order) });
+    };
+
+    auto fnSizeHint = [&](size_t sizeHint){ vertices.reserve(sizeHint); };
+
+    PolyLineBuilder builder {
         params.cap,
         params.join
     };
 
-    Builders::buildPolyLine(_line, builder);
+    Builders::buildPolyLine(_line, builder, fnAddVertex, fnSizeHint);
 
     if (params.outlineOn) {
 
@@ -229,7 +231,7 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
             // need to re-triangulate with different cap and/or join
             builder.cap = params.outlineCap;
             builder.join = params.outlineJoin;
-            Builders::buildPolyLine(_line, builder);
+            Builders::buildPolyLine(_line, builder, fnAddVertex, fnSizeHint);
         } else {
             // re-use indices from original line
             size_t oldSize = builder.indices.size();
