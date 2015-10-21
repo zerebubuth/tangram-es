@@ -121,7 +121,7 @@ void PolygonStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, 
                                         fnAddVertex, fnSizeHint);
         mesh.addVertices(std::move(vertices), std::move(builder.indices));
 
-        // TODO add builder.clear() ?;
+        // TODO add builder.clear() ?
         builder.numVertices = 0;
     }
 

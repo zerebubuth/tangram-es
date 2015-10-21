@@ -83,7 +83,8 @@ PolylineStyle::Parameters PolylineStyle::parseRule(const DrawRule& _rule) const 
     return p;
 }
 
-void PolylineStyle::buildPolygon(const Polygon& _poly, const DrawRule& _rule, const Properties& _props,
+void PolylineStyle::buildPolygon(const Polygon& _poly, const DrawRule& _rule,
+                                 const Properties& _props,
                                  VboMesh& _mesh, Tile& _tile) const {
 
     for (const auto& line : _poly) {
@@ -160,6 +161,8 @@ bool evalStyleParamWidth(StyleParamKey _key, const DrawRule& _rule, const Tile& 
 void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Properties& _props,
                               VboMesh& _mesh, Tile& _tile) const {
 
+    auto& mesh = static_cast<Mesh&>(_mesh);
+
     if (!_rule.contains(StyleParamKey::color)) {
         const auto& blocks = m_shaderProgram->getSourceBlocks();
         if (blocks.find("color") == blocks.end() && blocks.find("filter") == blocks.end()) {
@@ -197,17 +200,15 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
         } else { height = extrude[1]; }
     }
 
-    auto fnAddVertex = [&](const glm::vec3& coord, const glm::vec2& normal, const glm::vec2& uv) {
+    auto fnAddVertex = [&](auto& coord, auto& normal, auto& uv) {
             glm::vec4 extrude = { normal.x, normal.y, width, dWdZ };
-            vertices.push_back({ {coord.x, coord.y, height}, uv, extrude, abgr, float(params.order) });
+            vertices.push_back({ {coord.x, coord.y, height}, uv, extrude,
+                                  abgr, float(params.order) });
     };
 
     auto fnSizeHint = [&](size_t sizeHint){ vertices.reserve(sizeHint); };
 
-    PolyLineBuilder builder {
-        params.cap,
-        params.join
-    };
+    PolyLineBuilder builder { params.cap, params.join };
 
     Builders::buildPolyLine(_line, builder, fnAddVertex, fnSizeHint);
 
@@ -228,29 +229,36 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
         dWdZOutline += dWdZ;
 
         if (params.outlineCap != params.cap || params.outlineJoin != params.join) {
+            mesh.addVertices(std::move(vertices), std::move(builder.indices));
+
+            // TODO add builder.clear() ?
+            builder.numVertices = 0;
+
             // need to re-triangulate with different cap and/or join
             builder.cap = params.outlineCap;
             builder.join = params.outlineJoin;
             Builders::buildPolyLine(_line, builder, fnAddVertex, fnSizeHint);
+
+            mesh.addVertices(std::move(vertices), std::move(builder.indices));
         } else {
-            // re-use indices from original line
-            size_t oldSize = builder.indices.size();
-            size_t offset = vertices.size();
-            builder.indices.reserve(2 * oldSize);
+            std::vector<PolylineVertex> outlineVertices;
+            outlineVertices.reserve(vertices.size());
 
-            for(size_t i = 0; i < oldSize; i++) {
-                 builder.indices.push_back(offset + builder.indices[i]);
+            for(const auto& v : vertices) {
+                glm::vec4 extrudeOutline = { v.extrude.x, v.extrude.y,
+                                             widthOutline, dWdZOutline };
+                outlineVertices.push_back({ v.pos, v.texcoord, extrudeOutline,
+                                            abgrOutline, outlineOrder });
             }
-            for (size_t i = 0; i < offset; i++) {
-                const auto& v = vertices[i];
-                glm::vec4 extrudeOutline = { v.extrude.x, v.extrude.y, widthOutline, dWdZOutline };
-                vertices.push_back({ v.pos, v.texcoord, extrudeOutline, abgrOutline, outlineOrder });
-            }
+            // copy indices, offset will be added in compile
+            auto indices = builder.indices;
+            mesh.addVertices(std::move(vertices), std::move(builder.indices));
+            mesh.addVertices(std::move(outlineVertices), std::move(indices));
+
         }
+    } else {
+        mesh.addVertices(std::move(vertices), std::move(builder.indices));
     }
-
-    auto& mesh = static_cast<Mesh&>(_mesh);
-    mesh.addVertices(std::move(vertices), std::move(builder.indices));
 }
 
 }
