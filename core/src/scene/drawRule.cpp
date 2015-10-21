@@ -9,6 +9,7 @@
 #include "platform.h"
 
 #include <algorithm>
+#include <deque>
 
 namespace Tangram {
 
@@ -41,9 +42,42 @@ void DrawRule::logGetError(StyleParamKey _expectedKey, const StyleParam& _param)
     LOGE("wrong type '%d'for StyleParam '%d'", _param.value.which(), _expectedKey);
 }
 
-void Styling::apply(Tile& _tile, const Feature& _feature,
-                    const Scene& _scene, StyleContext& _ctx) {
+void Styling::apply(const Feature& _feature, const Scene& _scene, const SceneLayer& _layer,
+                    StyleContext& _ctx, Tile& _tile) {
 
+    _ctx.setFeature(_feature);
+
+    // Match layers
+    if (!_layer.filter().eval(_feature, _ctx)) { return; }
+
+    styles.clear();
+    processQ.clear();
+
+    // Add initial drawrules
+    mergeRules(_layer.rules());
+
+    for (auto it = _layer.sublayers().begin();
+         it != _layer.sublayers().end(); ++it) {
+        processQ.push_back(it);
+    }
+
+    while (!processQ.empty()) {
+        const auto& layer = *processQ.front();
+        processQ.pop_front();
+
+        if (!layer.filter().eval(_feature, _ctx)) {
+            continue;
+        }
+
+        const auto& subLayers = layer.sublayers();
+        for (auto it = subLayers.begin(); it != subLayers.end(); ++it) {
+            processQ.push_back(it);
+        }
+        // override with sublayer drawrules
+        mergeRules(layer.rules());
+    }
+
+    // Apply styles
     for (auto& rule : styles) {
 
         auto& styleName = rule.getStyleName();
@@ -56,6 +90,7 @@ void Styling::apply(Tile& _tile, const Feature& _feature,
             continue;
         }
 
+        // Evaluate JS functions and Stops
         for (size_t i = 0; i < StyleParamKeySize; ++i) {
             auto* param = rule.params[i];
             if (!param) { continue; }
@@ -78,6 +113,7 @@ void Styling::apply(Tile& _tile, const Feature& _feature,
             rule.evaluated[i].key = param->key;
         }
 
+        // Apply DrawRule
         auto& style = _scene.styles()[styleId];
         style->buildFeature(_tile, _feature, rule);
     }
