@@ -99,10 +99,10 @@ PointStyle::Parameters PointStyle::applyRule(const DrawRule& _rule, const Proper
 
 void PointStyle::pushQuad(std::vector<Label::Vertex>& _vertices, const glm::vec2& _size,
                           const glm::vec2& _uvBL, const glm::vec2& _uvTR, unsigned int _color) const {
-    _vertices.push_back({{-_size.x, -_size.y}, {_uvBL.x, _uvBL.y}, _color});
-    _vertices.push_back({{-_size.x, _size.y}, {_uvBL.x, _uvTR.y}, _color});
-    _vertices.push_back({{_size.x, -_size.y}, {_uvTR.x, _uvBL.y}, _color});
-    _vertices.push_back({{_size.x, _size.y}, {_uvTR.x, _uvTR.y}, _color});
+    _vertices.push_back({{     0.0,      0.0}, {_uvBL.x, _uvTR.y}, _color});
+    _vertices.push_back({{ _size.x,      0.0}, {_uvTR.x, _uvTR.y}, _color});
+    _vertices.push_back({{     0.0, -_size.y}, {_uvBL.x, _uvBL.y}, _color});
+    _vertices.push_back({{ _size.x, -_size.y}, {_uvTR.x, _uvBL.y}, _color});
 }
 
 bool PointStyle::getUVQuad(Parameters& _params, glm::vec4& _quad) const {
@@ -153,7 +153,7 @@ void PointStyle::buildPoint(const Point& _point, const DrawRule& _rule, const Pr
     std::vector<Label::Vertex> vertices;
 
     vertices.reserve(4);
-    pushQuad(vertices, p.size * 0.5f, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
+    pushQuad(vertices, p.size, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
     mesh.addVertices(std::move(vertices), {});
 }
 
@@ -175,7 +175,7 @@ void PointStyle::buildLine(const Line& _line, const DrawRule& _rule, const Prope
         Label::Transform transform = { glm::vec2(_line[i]) };
 
         mesh.addLabel(std::make_unique<SpriteLabel>(transform, p.size, mesh, _mesh.numVertices(), p.labelOptions));
-        pushQuad(vertices, p.size * 0.5f, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
+        pushQuad(vertices, p.size, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
     }
 
     mesh.addVertices(std::move(vertices), {});
@@ -205,7 +205,7 @@ void PointStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, co
                 Label::Transform transform = { glm::vec2(point) };
 
                 mesh.addLabel(std::make_unique<SpriteLabel>(transform, p.size, mesh, _mesh.numVertices(), p.labelOptions));
-                pushQuad(vertices, p.size * 0.5f, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
+                pushQuad(vertices, p.size, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
             }
         }
     } else {
@@ -214,7 +214,7 @@ void PointStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, co
         Label::Transform transform = { c };
 
         mesh.addLabel(std::make_unique<SpriteLabel>(transform, p.size, mesh, _mesh.numVertices(), p.labelOptions));
-        pushQuad(vertices, p.size * 0.5f, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
+        pushQuad(vertices, p.size, {uvsQuad.x, uvsQuad.y}, {uvsQuad.z, uvsQuad.w}, p.color);
     }
 
     mesh.addVertices(std::move(vertices), {});
