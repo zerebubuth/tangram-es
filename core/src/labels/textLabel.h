@@ -13,6 +13,9 @@ public:
 
     void updateBBoxes() override;
 
+protected:
+
+    void align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) override;
 };
 
 }
