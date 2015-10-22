@@ -14,11 +14,11 @@
 namespace Tangram {
 
 struct PolylineVertex {
-    glm::vec3 pos;
-    glm::vec2 texcoord;
-    glm::vec4 extrude;
-    GLuint abgr;
-    GLfloat layer;
+    glm::vec3 pos; // 2 short
+    glm::vec2 texcoord; // 2 short
+    glm::vec4 extrude; // 4 short should suffice
+    GLuint abgr; // could be indexed color, likely 1 byte - unless color is set by js
+    GLfloat layer; // 1 short => 16-20-24byte vs 48
 };
 
 using Mesh = TypedMesh<PolylineVertex>;
@@ -170,20 +170,13 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
         }
     }
 
-    std::vector<PolylineVertex> vertices;
-
     Parameters params = parseRule(_rule);
-    GLuint abgr = params.color;
 
     float dWdZ = 0.f;
     float width = 0.f;
 
     if (!evalStyleParamWidth(StyleParamKey::width, _rule, _tile, width, dWdZ)) {
         return;
-    }
-
-    if (Tangram::getDebugFlag(Tangram::DebugFlags::proxy_colors)) {
-        abgr = abgr << (_tile.getID().z % 6);
     }
 
     float height = 0.0f;
@@ -199,18 +192,39 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
             }
         } else { height = extrude[1]; }
     }
+    struct Builder : PolyLineBuilder, PolyLineBuilder::Context {
+        float dWdZ;
+        float width;
+        float order;
+        GLuint abgr;
+        float height;
 
-    auto fnAddVertex = [&](auto& coord, auto& normal, auto& uv) {
-            glm::vec4 extrude = { normal.x, normal.y, width, dWdZ };
-            vertices.push_back({ {coord.x, coord.y, height}, uv, extrude,
-                                  abgr, float(params.order) });
+        std::vector<PolylineVertex> vertices;
+        void addVertex(glm::vec3 coord, glm::vec2 normal, glm::vec2 uv){
+
+            vertices.push_back({ { coord.x, coord.y, height}, uv,
+                                 { normal.x, normal.y, width, dWdZ },
+                                   abgr, order });
+        }
+
+        void sizeHint(size_t sizeHint){ vertices.reserve(sizeHint); };
+
     };
 
-    auto fnSizeHint = [&](size_t sizeHint){ vertices.reserve(sizeHint); };
+    Builder builder;
+    builder.order = float(params.order);
+    builder.width = width;
+    builder.dWdZ = dWdZ;
+    builder.height = height;
+    builder.abgr = params.color;
+    builder.cap = params.cap;
+    builder.join = params.join;
 
-    PolyLineBuilder builder { params.cap, params.join };
+    if (Tangram::getDebugFlag(Tangram::DebugFlags::proxy_colors)) {
+        builder.abgr = builder.abgr << (_tile.getID().z % 6);
+    }
 
-    Builders::buildPolyLine(_line, builder, fnAddVertex, fnSizeHint);
+    builder.build(_line, builder);
 
     if (params.outlineOn) {
 
@@ -229,7 +243,7 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
         dWdZOutline += dWdZ;
 
         if (params.outlineCap != params.cap || params.outlineJoin != params.join) {
-            mesh.addVertices(std::move(vertices), std::move(builder.indices));
+            mesh.addVertices(std::move(builder.vertices), std::move(builder.indices));
 
             // TODO add builder.clear() ?
             builder.numVertices = 0;
@@ -237,14 +251,14 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
             // need to re-triangulate with different cap and/or join
             builder.cap = params.outlineCap;
             builder.join = params.outlineJoin;
-            Builders::buildPolyLine(_line, builder, fnAddVertex, fnSizeHint);
+            builder.build(_line, builder);
 
-            mesh.addVertices(std::move(vertices), std::move(builder.indices));
+            mesh.addVertices(std::move(builder.vertices), std::move(builder.indices));
         } else {
             std::vector<PolylineVertex> outlineVertices;
-            outlineVertices.reserve(vertices.size());
+            outlineVertices.reserve(builder.vertices.size());
 
-            for(const auto& v : vertices) {
+            for(const auto& v : builder.vertices) {
                 glm::vec4 extrudeOutline = { v.extrude.x, v.extrude.y,
                                              widthOutline, dWdZOutline };
                 outlineVertices.push_back({ v.pos, v.texcoord, extrudeOutline,
@@ -252,12 +266,12 @@ void PolylineStyle::buildLine(const Line& _line, const DrawRule& _rule, const Pr
             }
             // copy indices, offset will be added in compile
             auto indices = builder.indices;
-            mesh.addVertices(std::move(vertices), std::move(builder.indices));
+            mesh.addVertices(std::move(builder.vertices), std::move(builder.indices));
             mesh.addVertices(std::move(outlineVertices), std::move(indices));
 
         }
     } else {
-        mesh.addVertices(std::move(vertices), std::move(builder.indices));
+        mesh.addVertices(std::move(builder.vertices), std::move(builder.indices));
     }
 }
 

@@ -23,55 +23,103 @@ enum class JoinTypes {
 
 JoinTypes JoinTypeFromString(const std::string& str);
 
-/* Callback function for PolygonBuilder:
- *
- * @coord  tesselated output coordinate
- * @normal triangle plane normal
- * @uv     texture coordinate of the output coordinate
- */
-using PolygonVertexFn = std::function<void(const glm::vec3& coord,
-                                           const glm::vec3& normal,
-                                           const glm::vec2& uv)> ;
-
-typedef std::function<void(size_t reserve)> SizeHintFn;
 
 /* PolygonBuilder context,
  * see Builders::buildPolygon() and Builders::buildPolygonExtrusion()
  */
 struct PolygonBuilder {
-     // indices for drawing the polyon as triangles are added to this vector
-    std::vector<uint16_t> indices;
-    size_t numVertices = 0;
-    bool useTexCoords;
+    struct Context {
+        // indices for drawing the polyline as
+        // triangles are added to this  vector
+        std::vector<uint16_t> indices;
+        size_t numVertices = 0;
+        bool useTexCoords;
 
-    PolygonBuilder(bool _useTexCoords = true)
-        :  useTexCoords(_useTexCoords){}
+        Context(bool _useTexCoords = true)
+            :  useTexCoords(_useTexCoords){}
+    };
+
+    /* Callback function for PolygonBuilder:
+     *
+     * @coord  tesselated output coordinate
+     * @normal triangle plane normal
+     * @uv     texture coordinate of the output coordinate
+     */
+    virtual void addVertex(const glm::vec3& coord,
+                           const glm::vec3& normal,
+                           const glm::vec2& uv) = 0;
+
+    virtual void sizeHint(size_t reserve) = 0;
+
+    /* Build a tesselated polygon
+     * @_polygon input coordinates describing the polygon
+     * @_ctx output vectors, see <PolygonBuilder>
+     */
+    void tesselate(const Polygon& _polygon, float _height, Context& _ctx);
+
+    /* Build extruded 'walls' from a polygon
+     * @_polygon input coordinates describing the polygon
+     * @_minHeight the extrusion will extend from this z coordinate to the z of
+     * the polygon points
+     * @_ctx output vectors, see <PolygonBuilder>
+     */
+    void extrude(const Polygon& _polygon, float _minHeight,
+                 float _maxHeight, Context& _ctx);
 };
 
 
-/* Callback function for PolyLineBuilder:
- *
- * @coord   tesselated output coordinate
- * @enormal extrusion vector of the output coordinate
- * @uv      texture coordinate of the output coordinate
- */
-using PolyLineVertexFn = std::function<void(const glm::vec3& coord,
-                                            const glm::vec2& enormal,
-                                            const glm::vec2& uv)>;
+// using PolyLineVertexFn = std::function<void(const glm::vec3& coord,
+//                                             const glm::vec2& enormal,
+//                                             const glm::vec2& uv)>;
 
 /* PolyLineBuilder context,
  * see Builders::buildPolyLine()
  */
 struct PolyLineBuilder {
-     // indices for drawing the polyline as triangles are added to this vector
-    std::vector<uint16_t> indices;
-    size_t numVertices = 0;
-    CapTypes cap;
-    JoinTypes join;
+    struct Context {
+        // indices for drawing the polyline as
+        // triangles are added to this  vector
+        std::vector<uint16_t> indices;
+        size_t numVertices = 0;
+        CapTypes cap;
+        JoinTypes join;
 
-    PolyLineBuilder(CapTypes _cap = CapTypes::butt, JoinTypes _join = JoinTypes::bevel)
+    Context(CapTypes _cap = CapTypes::butt,
+            JoinTypes _join = JoinTypes::bevel)
         : cap(_cap), join(_join) {}
+    };
+
+    /* Callback function for PolyLineBuilder:
+     *
+     * @coord   tesselated output coordinate
+     * @enormal extrusion vector of the output coordinate
+     * @uv      texture coordinate of the output coordinate
+     */
+    virtual void addVertex(glm::vec3 coord, glm::vec2 enormal, glm::vec2 uv) = 0;
+
+    virtual void sizeHint(size_t reserve) = 0;
+
+    /* Build a tesselated polygon line of fixed width from line coordinates
+     * @_line input coordinates describing the line
+     * @_options parameters for polyline construction
+     * @_ctx output vectors, see <PolyLineBuilder>
+     */
+    void build(const Line& _line, Context& _ctx);
+
+    void addFan(const glm::vec3& _pC,
+                const glm::vec2& _nA, const glm::vec2& _nB, const glm::vec2& _nC,
+                const glm::vec2& _uA, const glm::vec2& _uB, const glm::vec2& _uC,
+                int _numTriangles, Context& _ctx);
+
+    void addCap(const glm::vec3& _coord, const glm::vec2& _normal, int _numCorners,
+                bool _isBeginning, Context& _ctx);
+
+    // /* Build a tesselated outline that follows the given line while skipping
+    //  * tile boundaries.
+    //  */
+    // void buildOutline(const Line& _line, Context& _ctx);
 };
+
 
 /* Callback function for SpriteBuilder
  * @coord tesselated coordinates of the sprite quad in screen space
@@ -95,44 +143,6 @@ struct SpriteBuilder {
 class Builders {
 
 public:
-
-    /* Build a tesselated polygon
-     * @_polygon input coordinates describing the polygon
-     * @_ctx output vectors, see <PolygonBuilder>
-     */
-    static void buildPolygon(const Polygon& _polygon, float _height,
-                             PolygonBuilder& _ctx,
-                             const PolygonVertexFn& _addVertex,
-                             const SizeHintFn& _sizeHint);
-
-    /* Build extruded 'walls' from a polygon
-     * @_polygon input coordinates describing the polygon
-     * @_minHeight the extrusion will extend from this z coordinate to the z of
-     * the polygon points
-     * @_ctx output vectors, see <PolygonBuilder>
-     */
-    static void buildPolygonExtrusion(const Polygon& _polygon,
-                                      float _minHeight, float _maxHeight,
-                                      PolygonBuilder& _ctx,
-                                      const PolygonVertexFn& _addVertex,
-                                      const SizeHintFn& _sizeHint);
-
-    /* Build a tesselated polygon line of fixed width from line coordinates
-     * @_line input coordinates describing the line
-     * @_options parameters for polyline construction
-     * @_ctx output vectors, see <PolyLineBuilder>
-     */
-    static void buildPolyLine(const Line& _line, PolyLineBuilder& _ctx,
-                              const PolyLineVertexFn& _addVertex,
-                              const SizeHintFn& _sizeHint);
-
-    /* Build a tesselated outline that follows the given line while skipping
-     * tile boundaries.
-     */
-    static void buildOutline(const Line& _line, PolyLineBuilder& _ctx,
-                             const PolyLineVertexFn& _addVertex,
-                             const SizeHintFn& _sizeHint);
-
 
     /* Build a tesselated quad centered on _screenOrigin
      * @_screenOrigin the sprite origin in screen space
