@@ -130,12 +130,13 @@ StyleParam::Value StyleParam::parseString(StyleParamKey key, const std::string& 
     }
     case StyleParamKey::transition_hide_time:
     case StyleParamKey::transition_show_time:
-    case StyleParamKey::transition_selected_time:
-        float time;
+    case StyleParamKey::transition_selected_time: {
+        float time = 0;
         if (!parseTime(_value, time)) {
             LOGW("Invalid time param '%s'", _value.c_str());
         }
         return time;
+    }
     case StyleParamKey::font_family:
     case StyleParamKey::font_weight:
     case StyleParamKey::font_style:
@@ -287,34 +288,42 @@ std::string StyleParam::toString() const {
 int StyleParam::parseValueUnitPair(const std::string& _value, size_t start,
                                    StyleParam::ValueUnitPair& _result) {
 
-    static const std::vector<std::string> units = { "px", "ms", "m", "s" };
-
     if (start >= _value.length()) { return -1; }
 
     float num;
-    int end;
+    int end, unitEnd;
 
-    int ok = std::sscanf(_value.c_str() + start, "%f%n", &num, &end);
+    int matched = std::sscanf(_value.c_str() + start, "%f%n%*s%n",
+                              &num, &end, &unitEnd);
 
-    if (!ok) { return -1; }
+    if (!matched) { return -1; }
 
-    _result.value = static_cast<float>(num);
+    if (matched == 2) {
+        int unitLen = unitEnd - end;
 
-    start += end;
-
-    if (start >= _value.length()) { return start; }
-
-    for (size_t i = 0; i < units.size(); ++i) {
-        const auto& unit = units[i];
-        std::string valueUnit;
-        if (unit == _value.substr(start, std::min<int>(_value.length(), unit.length()))) {
-            _result.unit = static_cast<Unit>(i);
-            start += unit.length();
-            break;
+        if (unitLen > 3) { return -1; }
+        // last character may only be a comma
+        if (unitLen == 3 && _value.compare(start+2, start+3, ",") != 0) {
+            return -1;
         }
+
+        if (_value.compare(start, start+2, "px") == 0) {
+            _result.unit = Unit::pixel;
+        } else if (_value.compare(start, start+2, "ms") == 0) {
+            _result.unit = Unit::milliseconds;
+        } else if (_value.compare(start, start+1, "m") == 0) {
+            _result.unit = Unit::meter;
+        } else if (_value.compare(start, start+1, "s") == 0) {
+            _result.unit = Unit::seconds;
+        } else {
+            return -1;
+        }
+        start += unitLen;
     }
 
-    // TODO skip whitespace , whitespace
+    _result.value = static_cast<float>(num);
+    start += end;
+
     return std::min(_value.length(), start + 1);
 }
 
@@ -394,7 +403,7 @@ uint32_t StyleParam::parseColor(const std::string& _color) {
 bool StyleParam::parseFontSize(const std::string& _str, float& _pxSize) {
     if (_str.empty()) {
         return false;
-    }
+   }
 
     double num;
     int index = parseFloat(_str, num);

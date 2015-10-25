@@ -49,7 +49,7 @@ enum class StyleParamKey : uint8_t {
 // UPDATE WITH StyleParamKey CHANGES!
 constexpr size_t StyleParamKeySize = static_cast<size_t>(StyleParamKey::width)+1;
 
-enum class Unit { pixel, milliseconds, meter, seconds };
+enum class Unit { pixel, meter, seconds, milliseconds };
 
 struct StyleParam {
 
