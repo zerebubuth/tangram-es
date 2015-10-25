@@ -12,8 +12,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     list(APPEND CORE_CXX_FLAGS -Wno-gnu-zero-variadic-macro-arguments)
 endif()
 
-set(INCLUDE_DIR include)
-set(DEPENDENCIES_DIR dependencies)
+set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(DEPENDENCIES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dependencies)
 set(SOURCE_DIR src)
 set(CORE_LIBRARY core CACHE INTERNAL "core library name" FORCE)
 

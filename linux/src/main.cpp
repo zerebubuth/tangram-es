@@ -188,6 +188,11 @@ void init_main_window() {
     glfwSetKeyCallback(main_window, key_callback);
     glfwSetDropCallback(main_window, drop_callback);
 
+    int fbWidth, fbHeight;
+
+    glfwGetWindowSize(main_window, &fbWidth, &fbHeight);
+    glfwGetFramebufferSize(main_window, &fbWidth, &fbHeight);
+
     // Setup graphics
     Tangram::setupGL();
     Tangram::resize(width, height);

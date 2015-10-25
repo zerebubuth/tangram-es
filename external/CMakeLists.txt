@@ -2,9 +2,13 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 
+
 if(USE_EXTERNAL_LIBS)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++1y")
 set(CMAKE_BUILD_TYPE Release)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
+endif()
 endif()
 
 set(EXPORTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/exports/${PLATFORM_TARGET})

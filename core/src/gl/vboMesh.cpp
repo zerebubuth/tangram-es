@@ -26,7 +26,9 @@ VboMesh::VboMesh() {
     m_generation = -1;
 }
 
-VboMesh::VboMesh(std::shared_ptr<VertexLayout> _vertexLayout, GLenum _drawMode, GLenum _hint, bool _keepMemoryData) : VboMesh() {
+VboMesh::VboMesh(std::shared_ptr<VertexLayout> _vertexLayout, GLenum _drawMode,
+                 GLenum _hint, bool _keepMemoryData) : VboMesh() {
+
     m_vertexLayout = _vertexLayout;
     m_hint = _hint;
     m_keepMemoryData = _keepMemoryData;
@@ -95,12 +97,14 @@ void VboMesh::subDataUpload() {
         if (vertexBytes - m_dirtySize < m_vertexLayout->getStride()) {
             // invalidate/orphane the data store on the driver
             glBufferData(GL_ARRAY_BUFFER, vertexBytes, NULL, m_hint);
-            // if this buffer is still used by gpu on current frame this call will not wait
-            // for the frame to finish using the vbo but "directly" send command to upload the data
+            // if this buffer is still used by gpu on current frame this call
+            // will not wait for the frame to finish using the vbo but
+            // "directly" send command to upload the data
             glBufferData(GL_ARRAY_BUFFER, vertexBytes, m_glVertexData, m_hint);
         } else {
             // perform simple sub data upload for part of the buffer
-            glBufferSubData(GL_ARRAY_BUFFER, m_dirtyOffset, m_dirtySize, m_glVertexData + m_dirtyOffset);
+            glBufferSubData(GL_ARRAY_BUFFER, m_dirtyOffset, m_dirtySize,
+                            m_glVertexData + m_dirtyOffset);
         }
     }
 
@@ -137,7 +141,8 @@ void VboMesh::upload() {
         // Buffer element index data
         RenderState::indexBuffer(m_glIndexBuffer);
 
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_nIndices * sizeof(GLushort), m_glIndexData, m_hint);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_nIndices * sizeof(GLushort),
+                     m_glIndexData, m_hint);
 
         if (!m_keepMemoryData) {
             delete[] m_glIndexData;
@@ -174,7 +179,8 @@ void VboMesh::draw(ShaderProgram& _shader) {
             m_vaos = std::make_unique<Vao>();
 
             // Capture vao state
-            m_vaos->init(_shader, m_vertexOffsets, *m_vertexLayout, m_glVertexBuffer, m_glIndexBuffer);
+            m_vaos->init(_shader, m_vertexOffsets, *m_vertexLayout,
+                         m_glVertexBuffer, m_glIndexBuffer);
         }
     } else {
         // Bind buffers for drawing
@@ -204,7 +210,8 @@ void VboMesh::draw(ShaderProgram& _shader) {
 
         // Draw as elements or arrays
         if (nIndices > 0) {
-            glDrawElements(m_drawMode, nIndices, GL_UNSIGNED_SHORT, (void*)(indiceOffset * sizeof(GLushort)));
+            glDrawElements(m_drawMode, nIndices, GL_UNSIGNED_SHORT,
+                           (void*)(indiceOffset * sizeof(GLushort)));
         } else if (nVertices > 0) {
             glDrawArrays(m_drawMode, 0, nVertices);
         }

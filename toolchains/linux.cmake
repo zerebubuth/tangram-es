@@ -3,7 +3,12 @@ set(PLATFORM_LINUX ON)
 
 # global compile options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++1y")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -ggdb")
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  #list(APPEND CORE_CXX_FLAGS -ffast-math)
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
+endif()
 
 if (USE_EXTERNAL_LIBS)
 include(${EXTERNAL_LIBS_DIR}/yaml-cpp.cmake)
@@ -11,10 +16,6 @@ include(${EXTERNAL_LIBS_DIR}/glfw.cmake)
 else()
 add_subdirectory(${PROJECT_SOURCE_DIR}/external)
 endif()
-
-# if(CMAKE_COMPILER_IS_GNUCXX)
-#   list(APPEND CORE_CXX_FLAGS -ffast-math)
-# endif()
 
 # compile definitions (adds -DPLATFORM_LINUX)
 set(CORE_COMPILE_DEFS PLATFORM_LINUX)

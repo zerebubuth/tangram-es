@@ -77,25 +77,26 @@ void TileWorker::run() {
         if (task->tile->isCanceled()) {
             continue;
         }
+        const clock_t beginLoad = clock();
 
         auto tileData = task->process();
 
-        // NB: Save shared reference to Scene while building tile
-        auto scene = m_tileManager.getScene();
-
-        const clock_t begin = clock();
-
-        context.initFunctions(*scene);
+        const clock_t beginBuild = clock();
 
         if (tileData) {
+            // NB: Save shared reference to Scene while building tile
+            std::shared_ptr<Scene> scene(m_tileManager.getScene());
+            context.initFunctions(*scene);
+
             task->tile->build(context, *scene, *tileData, *task->source);
         }
-
-        float loadTime = (float(clock() - begin) / CLOCKS_PER_SEC) * 1000;
-        LOG("loadTime %s - %f", task->tile->getID().toString().c_str(), loadTime);
-
+        float loadTime = ((beginBuild - beginLoad) / CLOCKS_PER_SEC) * 1000;
+        float buildTime = (float(clock() - beginBuild) / CLOCKS_PER_SEC) * 1000;
+        LOG("%s - load: %f / build: %f", task->tile->getID().toString().c_str(),
+            loadTime, buildTime);
 
         m_tileManager.tileProcessed(std::move(task));
+
         requestRender();
     }
 }
