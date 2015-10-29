@@ -74,7 +74,9 @@ public:
 
     bool hasTileSetChanged() { return m_tileSetChanged; }
 
-    void addDataSource(std::shared_ptr<DataSource> dataSource);
+    bool addDataSource(std::shared_ptr<DataSource> dataSource);
+
+    bool removeDataSource(DataSource& dataSource);
 
     const auto getTileSets() { return m_tileSets; }
 

@@ -63,6 +63,7 @@ struct Properties {
 %include "jni_datasource.i"
 
 namespace Tangram {
-void addDataSource(std::shared_ptr<Tangram::DataSource> _source);
+bool addDataSource(std::shared_ptr<DataSource> _source);
+bool removeDataSource(DataSource& _source);
 void clearDataSource(DataSource& _source, bool _data, bool _tiles);
 }

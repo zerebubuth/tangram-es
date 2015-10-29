@@ -91,8 +91,25 @@ void TileManager::setScene(std::shared_ptr<Scene> _scene) {
     m_scene = _scene;
 }
 
-void TileManager::addDataSource(std::shared_ptr<DataSource> dataSource) {
+bool TileManager::addDataSource(std::shared_ptr<DataSource> dataSource) {
     m_tileSets.push_back({ dataSource });
+    return true;
+}
+
+bool TileManager::removeDataSource(DataSource& dataSource) {
+    auto it = std::remove_if(
+        m_tileSets.begin(), m_tileSets.end(),
+        [&](auto& tileSet) {
+            if (tileSet.source->id() == dataSource.id()) {
+                for_each(tileSet.tiles.begin(), tileSet.tiles.end(), [&](auto& tile) {
+                        this->setTileState(*tile.second, TileState::canceled); });
+                return true;
+            }
+            return false;
+        });
+
+    m_tileSets.erase(it, m_tileSets.end());
+    return true;
 }
 
 std::shared_ptr<ClientGeoJsonSource> TileManager::getClientSourceById(int32_t _id) {

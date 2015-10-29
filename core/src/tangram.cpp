@@ -266,11 +266,20 @@ void setPixelScale(float _pixelsPerPoint) {
     }
 }
 
-void addDataSource(std::shared_ptr<DataSource> _source) {
-    if (!m_tileManager) { return; }
+bool addDataSource(std::shared_ptr<DataSource> _source) {
+    if (!m_tileManager) { return false; }
     std::lock_guard<std::mutex> lock(m_tilesMutex);
 
     m_tileManager->addDataSource(_source);
+    return true;
+}
+
+bool removeDataSource(DataSource& _source) {
+    if (!m_tileManager) { return false; }
+    std::lock_guard<std::mutex> lock(m_tilesMutex);
+
+    m_tileManager->removeDataSource(_source);
+    return true;
 }
 
 void clearDataSource(DataSource& _source, bool _data, bool _tiles) {
