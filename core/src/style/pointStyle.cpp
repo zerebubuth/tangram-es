@@ -242,8 +242,6 @@ void PointStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, co
 }
 
 void PointStyle::onBeginDrawFrame(const View& _view, Scene& _scene, int _textureUnit) {
-    bool contextLost = Style::glContextLost();
-
     if (m_spriteAtlas) {
         m_spriteAtlas->bind(0);
     } else if (m_texture) {
@@ -251,17 +249,8 @@ void PointStyle::onBeginDrawFrame(const View& _view, Scene& _scene, int _texture
         m_texture->bind(0);
     }
 
-    static bool initUniformSampler = true;
-
-    if (initUniformSampler || contextLost) {
-        m_shaderProgram->setUniformi("u_tex", 0);
-        initUniformSampler = false;
-    }
-
-    if (m_dirtyViewport || contextLost) {
-        m_shaderProgram->setUniformMatrix4f("u_ortho", _view.getOrthoViewportMatrix());
-        m_dirtyViewport = false;
-    }
+    m_shaderProgram->setUniformi("u_tex", 0);
+    m_shaderProgram->setUniformMatrix4f("u_ortho", _view.getOrthoViewportMatrix());
 
     Style::onBeginDrawFrame(_view, _scene, 1);
 }

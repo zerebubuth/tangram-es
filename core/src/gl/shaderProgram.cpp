@@ -307,6 +307,7 @@ void ShaderProgram::checkValidity() {
         m_glVertexShader = 0;
         m_glProgram = 0;
         m_needsBuild = true;
+        m_uniformCache.clear();
     }
 }
 
@@ -320,32 +321,21 @@ void ShaderProgram::setUniformi(const std::string& _name, int _value) {
     use();
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
-        glUniform1i(location, _value);
+        bool cached = getFromCache(location, _value);
+        if (!cached) { glUniform1i(location, _value); }
     }
 }
 
 void ShaderProgram::setUniformi(const std::string& _name, int _value0, int _value1) {
-    use();
-    GLint location = getUniformLocation(_name);
-    if (location >= 0) {
-        glUniform2i(location, _value0, _value1);
-    }
+    setUniformf(_name, glm::vec2(_value0, _value1));
 }
 
 void ShaderProgram::setUniformi(const std::string& _name, int _value0, int _value1, int _value2) {
-    use();
-    GLint location = getUniformLocation(_name);
-    if (location >= 0) {
-        glUniform3i(location, _value0, _value1, _value2);
-    }
+    setUniformf(_name, glm::vec3(_value0, _value1, _value2));
 }
 
 void ShaderProgram::setUniformi(const std::string& _name, int _value0, int _value1, int _value2, int _value3) {
-    use();
-    GLint location = getUniformLocation(_name);
-    if (location >= 0) {
-        glUniform4i(location, _value0, _value1, _value2, _value3);
-    }
+    setUniformf(_name, glm::vec4(_value0, _value1, _value2, _value3));
 }
 
 void ShaderProgram::setUniformf(const std::string& _name, float _value) {
@@ -353,66 +343,46 @@ void ShaderProgram::setUniformf(const std::string& _name, float _value) {
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            glUniform1f(location, _value);
-        }
+        if (!cached) { glUniform1f(location, _value); }
     }
 }
 
 void ShaderProgram::setUniformf(const std::string& _name, float _value0, float _value1) {
-    use();
-    GLint location = getUniformLocation(_name);
-    if (location >= 0) {
-        glUniform2f(location, _value0, _value1);
-    }
+    setUniformf(_name, glm::vec2(_value0, _value1));
 }
 
 void ShaderProgram::setUniformf(const std::string& _name, float _value0, float _value1, float _value2) {
-    use();
-    GLint location = getUniformLocation(_name);
-    if (location >= 0) {
-        glUniform3f(location, _value0, _value1, _value2);
-    }
+    setUniformf(_name, glm::vec3(_value0, _value1, _value2));
 }
 
 void ShaderProgram::setUniformf(const std::string& _name, float _value0, float _value1, float _value2, float _value3) {
-    use();
-    GLint location = getUniformLocation(_name);
-    if (location >= 0) {
-        glUniform4f(location, _value0, _value1, _value2, _value3);
-    }
+    setUniformf(_name, glm::vec4(_value0, _value1, _value2, _value3));
 }
 
-void ShaderProgram::setUniformf(const std::string& _name, const glm::vec2& _value){
+void ShaderProgram::setUniformf(const std::string& _name, const glm::vec2& _value) {
     use();
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            glUniform2f(location, _value.x, _value.y);
-        }
+        if (!cached) { glUniform2f(location, _value.x, _value.y); }
     }
 }
 
-void ShaderProgram::setUniformf(const std::string& _name, const glm::vec3& _value){
+void ShaderProgram::setUniformf(const std::string& _name, const glm::vec3& _value) {
     use();
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            glUniform3f(location, _value.x, _value.y, _value.z);
-        }
+        if (!cached) { glUniform3f(location, _value.x, _value.y, _value.z); }
     }
 }
 
-void ShaderProgram::setUniformf(const std::string& _name, const glm::vec4& _value){
+void ShaderProgram::setUniformf(const std::string& _name, const glm::vec4& _value) {
     use();
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            setUniformf(_name, _value.x, _value.y, _value.z, _value.w);
-        }
+        if (!cached) { glUniform4f(location, _value.x, _value.y, _value.z, _value.w); }
     }
 }
 
@@ -421,9 +391,7 @@ void ShaderProgram::setUniformMatrix2f(const std::string& _name, const glm::mat2
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            glUniformMatrix2fv(location, 1, _transpose, glm::value_ptr(_value));
-        }
+        if (!cached) { glUniformMatrix2fv(location, 1, _transpose, glm::value_ptr(_value)); }
     }
 }
 
@@ -432,9 +400,7 @@ void ShaderProgram::setUniformMatrix3f(const std::string& _name, const glm::mat3
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            glUniformMatrix3fv(location, 1, _transpose, glm::value_ptr(_value));
-        }
+        if (!cached) { glUniformMatrix3fv(location, 1, _transpose, glm::value_ptr(_value)); }
     }
 }
 
@@ -443,9 +409,7 @@ void ShaderProgram::setUniformMatrix4f(const std::string& _name, const glm::mat4
     GLint location = getUniformLocation(_name);
     if (location >= 0) {
         bool cached = getFromCache(location, _value);
-        if (!cached) {
-            glUniformMatrix4fv(location, 1, _transpose, glm::value_ptr(_value));
-        }
+        if (!cached) { glUniformMatrix4fv(location, 1, _transpose, glm::value_ptr(_value)); }
     }
 }
 

@@ -183,21 +183,12 @@ void TextStyle::buildPolygon(const Polygon& _polygon, const DrawRule& _rule,
 }
 
 void TextStyle::onBeginDrawFrame(const View& _view, Scene& _scene, int _textureUnit) {
-    bool contextLost = Style::glContextLost();
-
     m_fontContext->bindAtlas(0);
 
     m_shaderProgram->setUniformf("u_uv_scale_factor",
                                  1.0f / m_fontContext->getAtlasResolution());
-
-    if (contextLost) {
-        m_shaderProgram->setUniformi("u_tex", 0);
-    }
-
-    if (m_dirtyViewport || contextLost) {
-        m_shaderProgram->setUniformMatrix4f("u_ortho", _view.getOrthoViewportMatrix());
-        m_dirtyViewport = false;
-    }
+    m_shaderProgram->setUniformi("u_tex", 0);
+    m_shaderProgram->setUniformMatrix4f("u_ortho", _view.getOrthoViewportMatrix());
 
     Style::onBeginDrawFrame(_view, _scene, 1);
 

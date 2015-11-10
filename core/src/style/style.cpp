@@ -19,9 +19,8 @@ namespace Tangram {
     m_shaderProgram(std::make_unique<ShaderProgram>()),
     m_material(std::make_shared<Material>()),
     m_blend(_blendMode),
-    m_drawMode(_drawMode),
-    m_contextLost(true) {
-}
+    m_drawMode(_drawMode)
+{}
 
 Style::~Style() {}
 
@@ -117,7 +116,7 @@ void Style::buildFeature(Tile& _tile, const Feature& _feat, const DrawRule& _rul
 
 }
 
-void Style::setupShaderUniforms(int _textureUnit, bool _update, Scene& _scene) {
+void Style::setupShaderUniforms(int _textureUnit, Scene& _scene) {
     for (const auto& uniformPair : m_styleUniforms) {
         const auto& name = uniformPair.first;
         const auto& value = uniformPair.second;
@@ -131,14 +130,11 @@ void Style::setupShaderUniforms(int _textureUnit, bool _update, Scene& _scene) {
             tex->update(_textureUnit);
             tex->bind(_textureUnit);
 
-            if (_update) {
-                m_shaderProgram->setUniformi(name, _textureUnit);
-            }
+            m_shaderProgram->setUniformi(name, _textureUnit);
 
             _textureUnit++;
 
         } else {
-            if (!_update) { continue; }
 
             if (value.is<bool>()) {
                 m_shaderProgram->setUniformi(name, value.get<bool>());
@@ -160,12 +156,7 @@ void Style::setupShaderUniforms(int _textureUnit, bool _update, Scene& _scene) {
 
 void Style::onBeginDrawFrame(const View& _view, Scene& _scene, int _textureUnit) {
 
-    bool contextLost = glContextLost();
-
-    // Setup constant uniforms
-    if (contextLost) {
-        m_shaderProgram->setUniformf("u_device_pixel_ratio", m_pixelScale);
-    }
+    m_shaderProgram->setUniformf("u_device_pixel_ratio", m_pixelScale);
 
     m_material->setupProgram(*m_shaderProgram);
 
@@ -175,9 +166,7 @@ void Style::onBeginDrawFrame(const View& _view, Scene& _scene, int _textureUnit)
     }
 
     // Set Map Position
-    if (m_dirtyViewport) {
-        m_shaderProgram->setUniformf("u_resolution", _view.getWidth(), _view.getHeight());
-    }
+    m_shaderProgram->setUniformf("u_resolution", _view.getWidth(), _view.getHeight());
 
     const auto& mapPos = _view.getPosition();
     m_shaderProgram->setUniformf("u_map_position", mapPos.x, mapPos.y, _view.getZoom());
@@ -187,7 +176,7 @@ void Style::onBeginDrawFrame(const View& _view, Scene& _scene, int _textureUnit)
     m_shaderProgram->setUniformMatrix4f("u_view", _view.getViewMatrix());
     m_shaderProgram->setUniformMatrix4f("u_proj", _view.getProjectionMatrix());
 
-    setupShaderUniforms(_textureUnit, contextLost, _scene);
+    setupShaderUniforms(_textureUnit, _scene);
 
     // Configure render state
     switch (m_blend) {
@@ -245,14 +234,6 @@ void Style::buildLine(const Line& _line, const DrawRule& _rule, const Properties
 
 void Style::buildPolygon(const Polygon& _polygon, const DrawRule& _rule, const Properties& _props, VboMesh& _mesh, Tile& _tile) const {
     // No-op by default
-}
-
-bool Style::glContextLost() {
-    bool contextLost = m_contextLost;
-    if (m_contextLost) {
-        m_contextLost = false;
-    }
-    return contextLost;
 }
 
 }
