@@ -13,7 +13,6 @@
 #include "gl/shaderProgram.h"
 
 #include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 #include <algorithm>
 
@@ -130,7 +129,7 @@ void Tile::draw(const Style& _style, const View& _view) {
 
         float zoomAndProxy = m_proxyCounter > 0 ? -m_id.z : m_id.z;
 
-        shader->setUniformMatrix4f("u_model", glm::value_ptr(m_modelMatrix));
+        shader->setUniformMatrix4f("u_model", m_modelMatrix);
         shader->setUniformf("u_tile_origin", m_tileOrigin.x, m_tileOrigin.y, zoomAndProxy);
 
         styleMesh->draw(*shader);

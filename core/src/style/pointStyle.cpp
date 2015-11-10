@@ -15,8 +15,6 @@
 #include "data/propertyItem.h" // Include wherever Properties is used!
 #include "scene/stops.h"
 
-#include "glm/gtc/type_ptr.hpp"
-
 namespace Tangram {
 
 PointStyle::PointStyle(std::string _name, Blending _blendMode, GLenum _drawMode) : Style(_name, _blendMode, _drawMode) {
@@ -261,7 +259,7 @@ void PointStyle::onBeginDrawFrame(const View& _view, Scene& _scene, int _texture
     }
 
     if (m_dirtyViewport || contextLost) {
-        m_shaderProgram->setUniformMatrix4f("u_ortho", glm::value_ptr(_view.getOrthoViewportMatrix()));
+        m_shaderProgram->setUniformMatrix4f("u_ortho", _view.getOrthoViewportMatrix());
         m_dirtyViewport = false;
     }
 

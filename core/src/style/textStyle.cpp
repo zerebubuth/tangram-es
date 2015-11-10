@@ -15,8 +15,6 @@
 #include "platform.h"
 #include "tangram.h"
 
-#include "glm/gtc/type_ptr.hpp"
-
 namespace Tangram {
 
 TextStyle::TextStyle(std::string _name, std::shared_ptr<FontContext> _fontContext, bool _sdf,
@@ -197,7 +195,7 @@ void TextStyle::onBeginDrawFrame(const View& _view, Scene& _scene, int _textureU
     }
 
     if (m_dirtyViewport || contextLost) {
-        m_shaderProgram->setUniformMatrix4f("u_ortho", glm::value_ptr(_view.getOrthoViewportMatrix()));
+        m_shaderProgram->setUniformMatrix4f("u_ortho", _view.getOrthoViewportMatrix());
         m_dirtyViewport = false;
     }
 
