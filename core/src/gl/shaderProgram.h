@@ -111,6 +111,7 @@ private:
 
     static int s_validGeneration; // Incremented when GL context is invalidated
 
+    // Get a uniform value from the cache, and returns false when it's a cache miss
     template <class T>
     inline bool getFromCache(GLint _location, T _value) {
         const auto& v = m_uniformCache.find(_location);
