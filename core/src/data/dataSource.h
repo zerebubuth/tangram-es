@@ -15,23 +15,23 @@ class TileTask;
 struct TileTaskCb;
 
 class DataSource {
-    
+
 public:
 
-    /* Tile data sources must have a name and a URL template that defines where to find 
-     * a tile based on its coordinates. A URL template includes exactly one occurrance 
-     * each of '{x}', '{y}', and '{z}' which will be replaced by the x index, y index, 
+    /* Tile data sources must have a name and a URL template that defines where to find
+     * a tile based on its coordinates. A URL template includes exactly one occurrance
+     * each of '{x}', '{y}', and '{z}' which will be replaced by the x index, y index,
      * and zoom level of tiles to produce their URL.
      */
     DataSource(const std::string& _name, const std::string& _urlTemplate);
 
     virtual ~DataSource();
-    
+
     /* Fetches data for the map tile specified by @_tileID
      *
      * LoadTile starts an asynchronous I/O task to retrieve the data for a tile. When
-     * the I/O task is complete, the tile data is added to a queue in @_tileManager for 
-     * further processing before it is renderable. 
+     * the I/O task is complete, the tile data is added to a queue in @_tileManager for
+     * further processing before it is renderable.
      */
     virtual bool loadTileData(std::shared_ptr<TileTask>&& _task, TileTaskCb _cb);
 
@@ -59,7 +59,7 @@ public:
      */
     void setCacheSize(size_t _cacheSize);
 
-    int32_t id() { return m_id; }
+    int32_t id() const { return m_id; }
 
 
 protected:

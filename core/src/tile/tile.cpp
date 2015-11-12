@@ -57,6 +57,8 @@ void Tile::updateTileOrigin(const int _wrap) {
 
 void Tile::build(StyleContext& _ctx, const Scene& _scene, const TileData& _data, const DataSource& _source) {
 
+    m_dataSourceSerial = _source.id();
+
     const auto& layers = _scene.layers();
 
     _ctx.setGlobalZoom(m_id.z);
