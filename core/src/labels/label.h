@@ -83,7 +83,7 @@ public:
         Transition showTransition;
     };
 
-    Label(Transform _transform, glm::vec2 _size, Type _type, LabelMesh& _mesh, Range _vertexRange, Options _options);
+    Label(Transform _transform, glm::vec2 _size, Type _type, LabelMesh& _mesh, Range _vertexRange, Options _options, size_t _hash);
 
     virtual ~Label();
 
@@ -133,6 +133,8 @@ public:
 
     void resetState();
 
+    size_t getHash() { return m_hash; }
+
 private:
 
     bool offViewport(const glm::vec2& _screenSize);
@@ -156,6 +158,7 @@ private:
     // label options
     Options m_options;
     bool m_skipTransitions;
+    size_t m_hash;
 
 protected:
 

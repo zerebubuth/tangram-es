@@ -16,8 +16,6 @@ public:
 
     void updateBBoxes(float _zoomFract) override;
 
-    size_t getHash() { return m_hash; };
-
 protected:
 
     void align(glm::vec2& _screenPosition, const glm::vec2& _ap1, const glm::vec2& _ap2) override;
@@ -27,7 +25,6 @@ protected:
 private:
 
     glm::vec2 m_anchor;
-    size_t m_hash;
 
 };
 
