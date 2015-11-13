@@ -10,12 +10,12 @@ namespace Tangram {
 Label::Label(Label::Transform _transform, glm::vec2 _size, Type _type, LabelMesh& _mesh,
              Range _vertexRange, Options _options, size_t _hash) :
     m_options(_options),
+    m_hash(_hash),
     m_type(_type),
     m_transform(_transform),
     m_dim(_size),
     m_mesh(_mesh),
-    m_vertexRange(_vertexRange),
-    m_hash(_hash)
+    m_vertexRange(_vertexRange)
 {
     m_transform.state.alpha = m_type == Type::debug ? 1.0 : 0.0;
     m_currentState = m_type == Type::debug ? State::visible : State::wait_occ;
@@ -213,6 +213,7 @@ void Label::pushTransform() {
 
 void Label::resetState() {
     m_occludedLastFrame = false;
+    m_skipTransitions = false;
     m_occlusionSolved = false;
     m_updateMeshVisibility = true;
     m_dirty = true;
