@@ -16,7 +16,13 @@ Label::Label(Label::Transform _transform, glm::vec2 _size, Type _type, LabelMesh
     m_vertexRange(_vertexRange) {
 
     m_transform.state.alpha = m_type == Type::debug ? 1.0 : 0.0;
-    m_currentState = m_type == Type::debug ? State::visible : State::wait_occ;
+        
+    if (!canOcclude()) {
+        enterState(State::visible, 1.0);
+    } else {
+        m_currentState = State::wait_occ;
+    }
+        
     m_occludedLastFrame = false;
     m_occlusionSolved = false;
     m_updateMeshVisibility = true;
