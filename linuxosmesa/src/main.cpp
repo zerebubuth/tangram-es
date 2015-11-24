@@ -14,6 +14,7 @@
 
 #include <png++/png.hpp>
 #include <gif_lib.h>
+#include <mcheck.h>
 
 using namespace Tangram;
 
@@ -24,7 +25,7 @@ std::shared_ptr<ClientGeoJsonSource> data_source;
 int width = 800;
 int height = 600;
 OSMesaContext osmesa_context = nullptr;
-unsigned char *osmesa_buffer = nullptr;
+uint8_t *osmesa_buffer = nullptr;
 
 int output_func(GifFileType *ptr, const GifByteType *bytes, int len) {
   std::ofstream &out = *((std::ofstream *)ptr->UserData);
@@ -62,7 +63,7 @@ void init_context() {
     }
 
     // Allocate a new offscreen buffer
-    osmesa_buffer = new unsigned char[4 * width * height];
+    osmesa_buffer = new uint8_t[4 * width * height];
 
     // Make the context current and bind to buffer
     GLboolean status = OSMesaMakeCurrent(
@@ -90,7 +91,7 @@ void osmesa_write_png(const std::string &file) {
     auto &row = image[height - y - 1];
 
     for (int x = 0; x < width; ++x) {
-      unsigned char *pixel = &osmesa_buffer[4 * (x + width * y)];
+      uint8_t *pixel = &osmesa_buffer[4 * (x + width * y)];
       row[x] = png::rgb_pixel(pixel[0], pixel[1], pixel[2]);
     }
   }
@@ -99,9 +100,42 @@ void osmesa_write_png(const std::string &file) {
 
 #define CHECK_GIF_ERROR(x) { if ((x) != GIF_OK) { std::cerr << "At " << __FILE__ << ":" << __LINE__ << ": "; PrintGifError(); abort(); } }
 
+enum class disposal_method : uint8_t {
+  not_animated = 0,
+  draw_on_top = 1,
+  restore_background = 2,
+  restore_previous = 3 // not widely supported?
+};
+
+constexpr uint8_t delay_bitfield(
+  disposal_method disposal,
+  bool wait_for_user_input,
+  bool transparency_flag) {
+  // bitfield: [RRRDDDUT]
+  //   R = reserved, must be zero
+  //   D = disposal method
+  //   U = user input flag
+  //   T = transparency flag
+  return ((uint8_t)(disposal) << 2) |
+    (wait_for_user_input ? 2 : 0) |
+    (transparency_flag   ? 1 : 0);
+}
+
 void osmesa_write_gif(const std::string &file) {
-  static char netscape_app[] = "NETSCAPE2.0";
-  static char netscape_data[] = {1, 0, 0};
+  // see http://www.vurdalakov.net/misc/gif/netscape-looping-application-extension
+  // for more detail.
+  static uint8_t netscape_app[] = {
+    'N', 'E', 'T', 'S', 'C', 'A', 'P' , 'E', // app identifier
+    '2', '.', '0'                            // app auth code
+  };
+  static uint8_t netscape_data[] = {1, 0, 0};
+  static uint16_t delay_time = 10;
+  static uint8_t delay_data[] = {
+    delay_bitfield(disposal_method::draw_on_top, false, false),
+    uint8_t(delay_time & 0xff),
+    uint8_t(delay_time >> 8),
+    0
+  };
 
   int status = 0;
   std::ofstream file_handle(file.c_str());
@@ -118,9 +152,9 @@ void osmesa_write_gif(const std::string &file) {
   //status = EGifPutImageDesc(gif, 0, 0, width, height, 0, nullptr);
   //CHECK_GIF_ERROR(status);
 
-  unsigned char *red = (unsigned char *)malloc(sizeof(unsigned char) * width * height);
-  unsigned char *green = (unsigned char *)malloc(sizeof(unsigned char) * width * height);
-  unsigned char *blue = (unsigned char *)malloc(sizeof(unsigned char) * width * height);
+  uint8_t *red = (uint8_t *)malloc(sizeof(uint8_t) * width * height);
+  uint8_t *green = (uint8_t *)malloc(sizeof(uint8_t) * width * height);
+  uint8_t *blue = (uint8_t *)malloc(sizeof(uint8_t) * width * height);
 
   assert(red != nullptr);
   assert(green != nullptr);
@@ -129,13 +163,13 @@ void osmesa_write_gif(const std::string &file) {
   int num_frames = 10;
   for (int i = 0; i < num_frames; ++i) {
     std::cout << "rendering frame " << i << "/" << num_frames << std::endl;
-    Tangram::update(i == 0 ? 0.0 : 1.0);
+    Tangram::update(i == 0 ? 0.001f : (float(delay_time) / 100.0f));
     Tangram::render();
 
     SavedImage *img = MakeSavedImage(gif, nullptr);
     int color_map_size = 256;
     ColorMapObject *output_color_map = MakeMapObject(color_map_size, nullptr);
-    unsigned char *bits = (unsigned char *)malloc(sizeof(unsigned char) * width * height);
+    uint8_t *bits = (uint8_t *)malloc(sizeof(uint8_t) * width * height);
 
     assert(img != nullptr);
     assert(output_color_map != nullptr);
@@ -150,31 +184,38 @@ void osmesa_write_gif(const std::string &file) {
     img->ExtensionBlockCount = 0;
     img->ExtensionBlocks = nullptr;
 
-    MakeExtension(img, APPLICATION_EXT_FUNC_CODE);
-    status = AddExtensionBlock(img, sizeof netscape_app, (unsigned char *)netscape_app);
-    CHECK_GIF_ERROR(status);
-    status = AddExtensionBlock(img, sizeof netscape_data, (unsigned char *)netscape_data);
-    CHECK_GIF_ERROR(status);
+    if (i == 0) {
+      MakeExtension(img, APPLICATION_EXT_FUNC_CODE);
+      status = AddExtensionBlock(img, sizeof netscape_app, netscape_app);
+      CHECK_GIF_ERROR(status);
+      MakeExtension(img, 0);
+      status = AddExtensionBlock(img, sizeof netscape_data, netscape_data);
+      CHECK_GIF_ERROR(status);
+    }
 
-    // TODO: see http://giflib.sourceforge.net/whatsinagif/animation_and_transparency.html
-    // for information on how to encode the delay.
+    MakeExtension(img, GRAPHICS_EXT_FUNC_CODE);
+    status = AddExtensionBlock(img, sizeof delay_data, delay_data);
+    CHECK_GIF_ERROR(status);
 
     for (int y = 0; y < height; ++y) {
       for (int x = 0; x < width; ++x) {
-        unsigned char *pixel = &osmesa_buffer[4 * (x + width * (height - y - 1))];
+        uint8_t *pixel = &osmesa_buffer[4 * (x + width * (height - y - 1))];
         int offset = x + y * width;
         red[offset] = pixel[0];
         green[offset] = pixel[1];
         blue[offset] = pixel[2];
       }
     }
-    status = QuantizeBuffer(width, height, &output_color_map->ColorCount,
+    // note: we throw this away? seems a little odd... but most of the images
+    // will probably use quite a lot of colors anyway.
+    int actual_colors_used = color_map_size;
+    status = QuantizeBuffer(width, height, &actual_colors_used,
                             red, green, blue, bits, output_color_map->Colors);
     CHECK_GIF_ERROR(status);
     img->RasterBits = bits;
 
     if (gif->SColorMap == nullptr) {
-      gif->SColorMap = MakeMapObject(output_color_map->ColorCount, output_color_map->Colors);
+      gif->SColorMap = MakeMapObject(color_map_size, output_color_map->Colors);
       assert(gif->SColorMap != nullptr);
     }
   }
