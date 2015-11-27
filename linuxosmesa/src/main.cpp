@@ -55,8 +55,8 @@ void init_context() {
 
     cleanup_context();
 
-    // Create a new context
-    osmesa_context = OSMesaCreateContext(OSMESA_RGBA, nullptr);
+    // Create a new context (z, stencil, accum)
+    osmesa_context = OSMesaCreateContextExt(OSMESA_RGBA, 16, 16, 16, nullptr);
     if (!osmesa_context) {
       std::cerr << "Failed to create OSMesa context." << std::endl;
       exit(1);
@@ -85,6 +85,9 @@ void init_context() {
 void osmesa_write_png(const std::string &file) {
   Tangram::update(0.0);
   Tangram::render();
+  // seems to be necessary for llvmpipe / later versions of OSMesa?
+  // TODO: investigate why this might be!
+  glFinish();
 
   png::image<png::rgb_pixel> image(width, height);
   for (int y = 0; y < height; ++y) {
