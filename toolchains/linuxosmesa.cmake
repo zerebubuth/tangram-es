@@ -44,6 +44,8 @@ if(APPLICATION)
   find_package(OSMesa REQUIRED)
   find_package(PngPP REQUIRED)
   find_package(GIF REQUIRED)
+  find_package(Boost REQUIRED COMPONENTS program_options filesystem system)
+  find_package(PROJ4 REQUIRED)
 
   # add sources and include headers
   find_sources_and_include_directories(
@@ -52,6 +54,9 @@ if(APPLICATION)
 
   add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
+  include_directories(${Boost_INCLUDE_DIRS})
+  include_directories(${PROJ4_INCLUDE_DIR})
+
   target_link_libraries(${EXECUTABLE_NAME}
     ${CORE_LIBRARY}
     -lcurl OSMesa -pthread
@@ -59,8 +64,10 @@ if(APPLICATION)
     -ldl
     ${OSMESA_LIBRARIES}
     ${OPENGL_LIBRARIES}
-	 ${PngPP_LIBRARIES}
-	 ${GIF_LIBRARIES})
+    ${PngPP_LIBRARIES}
+    ${GIF_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${PROJ4_LIBRARIES})
 
   add_dependencies(${EXECUTABLE_NAME} copy_resources)
 
