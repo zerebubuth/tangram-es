@@ -14,7 +14,6 @@
 
 #include <png++/png.hpp>
 #include <gif_lib.h>
-#include <mcheck.h>
 
 using namespace Tangram;
 
@@ -227,7 +226,6 @@ void osmesa_write_gif(const std::string &file) {
   CHECK_GIF_ERROR(status);
 
   FreeSavedImages(gif);
-  //EGifCloseFile(gif);
 
   free(red);
   free(green);
