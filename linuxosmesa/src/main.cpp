@@ -26,7 +26,7 @@ std::shared_ptr<Tangram::ClientGeoJsonSource> data_source;
 
 OSMesaContext osmesa_context = nullptr;
 uint8_t *osmesa_buffer = nullptr;
-static const int tile_width = 256, tile_height = 256;
+static const int tile_width = 256, tile_height = 256, pixel_scale = 4;
 static const double mercator_world_size = 40075016.68;
 projPJ projection_3785 = nullptr, projection_4326 = nullptr;
 
@@ -39,6 +39,9 @@ int output_func(GifFileType *ptr, const GifByteType *bytes, int len) {
 void cleanup_context() {
     // Destroy old context
     if (osmesa_context != nullptr) {
+      // see comment below in init_context about why this is
+      // commented out.
+      //OSMesaPostprocess(osmesa_context, "pp_jimenezmlaa", 0);
       OSMesaDestroyContext(osmesa_context);
       osmesa_context = nullptr;
     }
@@ -97,9 +100,14 @@ void init_context(const std::string &scene_file, int z, int x, int y, int metati
     exit(1);
   }
 
+  // attempt to wrangle OSMesa into doing some sort of anti-aliasing
+  // note: this kind of works, but crashes when the context is cleaned
+  // up, so a more brute force approach is being taken.
+  //OSMesaPostprocess(osmesa_context, "pp_jimenezmlaa", 4);
+
   // Allocate a new offscreen buffer
-  int width = tile_width * metatile_size;
-  int height = tile_height * metatile_size;
+  int width = tile_width * metatile_size * pixel_scale;
+  int height = tile_height * metatile_size * pixel_scale;
   osmesa_buffer = new uint8_t[4 * width * height];
 
   // Make the context current and bind to buffer
@@ -121,6 +129,7 @@ void init_context(const std::string &scene_file, int z, int x, int y, int metati
   std::cout << "Setting z=" << z << ", center=" << lon << "," << lat << std::endl;
   Tangram::setZoom(z);
   Tangram::setPosition(lon, lat);
+  Tangram::setPixelScale(float(pixel_scale));
 
   data_source = std::make_shared<Tangram::ClientGeoJsonSource>("touch", "");
   Tangram::addDataSource(data_source);
@@ -305,17 +314,29 @@ void osmesa_render_metatile() {
 
 void write_single_tile_png(const std::string &file_name,
                            int tx, int ty, int metatile_size) {
-  const int x_offset = tx * tile_width;
-  const int y_offset = ty * tile_height;
-  const int buffer_width = metatile_size * tile_width;
+  const int x_offset = tx * tile_width * pixel_scale;
+  const int y_offset = ty * tile_height * pixel_scale;
+  const int buffer_width = metatile_size * tile_width * pixel_scale;
+  const int scale_denom = pixel_scale * pixel_scale;
 
   png::image<png::rgb_pixel> image(tile_width, tile_height);
   for (int y = 0; y < tile_height; ++y) {
     auto &row = image[tile_height - y - 1];
 
     for (int x = 0; x < tile_width; ++x) {
-      uint8_t *pixel = &osmesa_buffer[4 * (x + x_offset + buffer_width * (y + y_offset))];
-      row[x] = png::rgb_pixel(pixel[0], pixel[1], pixel[2]);
+      uint16_t pixel_accum[4] = { 0, 0, 0, 0 };
+      for (int dy = 0; dy < pixel_scale; ++dy) {
+        for (int dx = 0; dx < pixel_scale; ++dx) {
+          uint8_t *pixel = &osmesa_buffer[4 * (
+              x * pixel_scale + dx + x_offset +
+              buffer_width * (y * pixel_scale + dy + y_offset)
+              )];
+          for (int i = 0; i < 4; ++i) { pixel_accum[i] += uint16_t(pixel[i]); }
+        }
+      }
+      row[x] = png::rgb_pixel(pixel_accum[0] / scale_denom,
+                              pixel_accum[1] / scale_denom,
+                              pixel_accum[2] / scale_denom);
     }
   }
   image.write(file_name);

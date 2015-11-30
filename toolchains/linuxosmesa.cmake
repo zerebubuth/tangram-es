@@ -59,10 +59,10 @@ if(APPLICATION)
 
   target_link_libraries(${EXECUTABLE_NAME}
     ${CORE_LIBRARY}
-    -lcurl OSMesa -pthread
+    -lcurl -pthread
     # only used when not using external lib
     -ldl
-    ${OSMESA_LIBRARIES}
+    ${OSMESA_LIBRARY}
     ${OPENGL_LIBRARIES}
     ${PngPP_LIBRARIES}
     ${GIF_LIBRARIES}
